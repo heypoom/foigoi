@@ -330,7 +330,7 @@ class GenerationRequester {
     console.log(`Using Valkey at: ${VALKEY_URL}`)
     console.log(`Concurrent requests: ${CONCURRENT_REQUESTS}`)
 
-    // await this.processTranscriptCues()
+    await this.processTranscriptCues()
     await this.processPromptAndSliderCues()
 
     console.log('✅ Generation requester finished')

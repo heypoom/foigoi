@@ -13,16 +13,19 @@ app = modal.App(APP_NAME)
 
 SUPPORTED_PROGRAMS = ["P0", "P3", "P3B", "P4"]
 CHUAMIATEE_PROGRAMS = ["P3", "P3B"]
+SD3_TURBO_CACHE_DIR = "/cache/sd3-turbo"
+
+SD3_TURBO_MODEL_NAME = "stabilityai/stable-diffusion-3.5-large-turbo"
 
 # Default generation parameters
 DEFAULT_WIDTH = 1920
 DEFAULT_HEIGHT = 1080
-DEFAULT_GUIDANCE_SCALE = 7.5
-DEFAULT_NUM_INFERENCE_STEPS = 40
+DEFAULT_GUIDANCE_SCALE = 0.0
+DEFAULT_NUM_INFERENCE_STEPS = 10
 
 # Static pregen version ID. Use in case of future changes to the generation.
 # Example: different transcripts, model versions, or other significant changes.
-PREGEN_VERSION_ID = 3
+PREGEN_VERSION_ID = 4
 
 PREGEN_UPLOAD_STATUS_KEY = f"pregen/{PREGEN_VERSION_ID}/variant_upload_status"
 
@@ -49,7 +52,7 @@ image = (
 with image.imports():
     import torch
     import PIL.Image as PILImage
-    from diffusers import AutoPipelineForText2Image
+    from diffusers.pipelines.stable_diffusion_3.pipeline_stable_diffusion_3 import StableDiffusion3Pipeline
     from valkey import Valkey
     import boto3
 
@@ -82,7 +85,7 @@ def latents_to_rgb(latents):
 
     return PILImage.fromarray(image_array)
 
-def create_step_callback(program_key, cue_id, variant_id, step_timings):
+def create_step_callback(program_key, cue_id, variant_id, step_timings, vae_decoder):
     """Creates callback to capture intermediate steps"""
     def on_step_end(pipeline, step, timestep, callback_kwargs):
         # Only capture for P1-P4, skip P0
@@ -96,8 +99,12 @@ def create_step_callback(program_key, cue_id, variant_id, step_timings):
         # Extract latents
         latents = callback_kwargs["latents"]
 
-        # Use latents_to_rgb for SDXL latent decoding (matches legacy system)
-        preview_image = latents_to_rgb(latents)
+        # More robust approach using the VAE decoder directly
+        latents = 1 / vae_decoder.config.scaling_factor * latents
+        image = vae_decoder.decode(latents).sample
+        image = (image / 2 + 0.5).clamp(0, 1) # Normalize to [0, 1]
+        image = image.cpu().permute(0, 2, 3, 1).float().numpy() # Convert to (batch, H, W, C) numpy array
+        preview_image = PILImage.fromarray((image[0] * 255).astype("uint8")) # Take first image from batch
         
         # Save intermediate image to R2
         with io.BytesIO() as buf:
@@ -215,6 +222,17 @@ class Inference:
             token=os.environ["HF_TOKEN"]
         )
 
+        self.pipe = StableDiffusion3Pipeline.from_pretrained(
+
+            SD3_TURBO_MODEL_NAME,
+            cache_dir=SD3_TURBO_CACHE_DIR,
+
+            torch_dtype=torch.bfloat16,
+
+            token=os.environ["HF_TOKEN"]
+
+        )
+
         self.vk = Valkey("raya.poom.dev", username="default", password=os.environ["VALKEY_PASSWORD"])
 
         print("pipeline initialized.")
@@ -288,7 +306,7 @@ class Inference:
         # Run the pipeline with callback for P1-P4, without callback for P0
         if program_key != "P0":
             print(f"Running inference with intermediate steps for {program_key}")
-            callback_fn = create_step_callback(program_key, cue_id, variant_id, step_timings)
+            callback_fn = create_step_callback(program_key, cue_id, variant_id, step_timings, self.pipe.vae)
 
             images = self.pipe(
                 prompt=modified_prompt,
