@@ -7,7 +7,7 @@ import {$regenCount, $regenActive, $regenEnabled} from '../../store/regen'
 const PROJ_ID = 'foigoi'
 
 // Which version of pre-generated images to use
-const PREGEN_VERSION_ID = 4
+const PREGEN_VERSION_ID = 2
 
 // Program 0 transcript cues
 const TRANSCRIPT_MAX_VARIANT_COUNT = 30

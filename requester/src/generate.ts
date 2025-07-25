@@ -44,6 +44,11 @@ class GenerationRequester {
   async generateImage(request: GenerationRequest): Promise<void> {
     const REQ_ID = `${request.cue_id}_${request.variant_id}`
 
+    if (request.program_key.startsWith('P2')) {
+      console.log('[skip P2]')
+      return
+    }
+
     try {
       console.log(
         `😶 fetch: cue ${request.cue_id}, var ${request.variant_id}, pgm ${request.program_key}`
@@ -330,7 +335,7 @@ class GenerationRequester {
     console.log(`Using Valkey at: ${VALKEY_URL}`)
     console.log(`Concurrent requests: ${CONCURRENT_REQUESTS}`)
 
-    await this.processTranscriptCues()
+    // await this.processTranscriptCues()
     await this.processPromptAndSliderCues()
 
     console.log('✅ Generation requester finished')

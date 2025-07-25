@@ -8,7 +8,7 @@ export const Route = createLazyFileRoute('/image-viewer')({
   component: ImageViewer,
 })
 
-const DEFAULT_PREGEN_VERSION_ID = 3 // default pregen version ID
+const DEFAULT_PREGEN_VERSION_ID = 2 // default pregen version ID
 const TRANSCRIPT_MAX_VARIANT_COUNT = 30 // Program 0 transcript cues
 const PROMPT_MAX_VARIANT_COUNT = 50 // Other programs (prompt actions)
 

@@ -19,7 +19,7 @@ SD3_TURBO_MODEL_NAME = "stabilityai/stable-diffusion-3.5-large-turbo"
 
 # Default generation parameters
 DEFAULT_WIDTH = 1920
-DEFAULT_HEIGHT = 1080
+DEFAULT_HEIGHT = 1072
 DEFAULT_GUIDANCE_SCALE = 0.0
 DEFAULT_NUM_INFERENCE_STEPS = 10
 
@@ -214,13 +214,6 @@ class Inference:
     @modal.enter()
     def initialize(self):
         print("initializing pipeline...")
-
-        self.pipe = AutoPipelineForText2Image.from_pretrained(
-            SDXL_MODEL_NAME,
-            cache_dir=SDXL_CACHE_DIR,
-            torch_dtype=torch.float16,
-            token=os.environ["HF_TOKEN"]
-        )
 
         self.pipe = StableDiffusion3Pipeline.from_pretrained(
 
