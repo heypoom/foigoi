@@ -2,11 +2,11 @@ import {useStore} from '@nanostores/react'
 import cn from 'classnames'
 
 import {$transcript} from '../../store/dictation'
-import {$exhibitionMode} from '../../store/exhibition'
+// import {$exhibitionMode} from '../../store/exhibition'
 
 export const DictationCaption = () => {
   const {transcript, final} = useStore($transcript)
-  const isExhibition = useStore($exhibitionMode)
+  // const isExhibition = useStore($exhibitionMode)
 
   if (!transcript) return null
 

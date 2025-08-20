@@ -1,7 +1,7 @@
 import cx from 'classnames'
 import {ComponentProps, useEffect, useRef, useState} from 'react'
-import {$exhibitionMode} from '../store/exhibition'
-import {useStore} from '@nanostores/react'
+// import {$exhibitionMode} from '../store/exhibition'
+// import {useStore} from '@nanostores/react'
 
 interface Props {
   input?: ComponentProps<'textarea'>
@@ -31,7 +31,7 @@ function getExpandWidth(charactersTyped: number) {
 }
 
 export const PromptInput = ({input, className}: Props) => {
-  const isExhibition = useStore($exhibitionMode)
+  // const isExhibition = useStore($exhibitionMode)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [w, setW] = useState<number | null>(null)
