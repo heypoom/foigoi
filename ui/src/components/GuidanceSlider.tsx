@@ -15,7 +15,7 @@ export const GuidanceSlider = (props: Props) => {
   const generating = useStore($generating)
 
   return (
-    <div className="w-full min-w-[1500px] mt-[80px]">
+    <div className="w-full min-w-[1000px] mt-[80px]">
       <Slider
         value={guidance}
         onChange={(_, value) => {
@@ -35,13 +35,13 @@ export const GuidanceSlider = (props: Props) => {
         color="neutral"
         disabled={generating}
         sx={{
-          '--Slider-trackSize': '40px',
-          '--Slider-thumbSize': '100px',
-          '--Slider-thumbWidth': '100px',
+          '--Slider-trackSize': '20px',
+          '--Slider-thumbSize': '50px',
+          '--Slider-thumbWidth': '50px',
         }}
       />
 
-      <style>{`.MuiSlider-thumb {border: 12px solid #dde7ee;}`}</style>
+      <style>{`.MuiSlider-thumb {border: 5px solid #dde7ee;}`}</style>
     </div>
   )
 }

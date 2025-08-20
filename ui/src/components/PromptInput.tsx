@@ -8,8 +8,8 @@ interface Props {
   className?: string
 }
 
-const E_MIN_WIDTH = 2800
-const E_MAX_WIDTH = 3500
+const E_MIN_WIDTH = 1800
+const E_MAX_WIDTH = 2300
 const E_MIN_CHARS = 23
 const E_MAX_CHARS = 40
 
@@ -75,8 +75,7 @@ export const PromptInput = ({input, className}: Props) => {
             String(input?.value)?.length <= E_MAX_CHARS ? 'nowrap' : 'pre-wrap',
 
           fontSize: '72px',
-          lineHeight: '167px',
-          padding: '25px 49px',
+          lineHeight: '150px',
           fontWeight: 300,
         }}
         className={cx(
