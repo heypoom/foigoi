@@ -18,7 +18,7 @@ function ZeroRoute() {
 
   return (
     <main>
-      <div className="fixed font-mono w-full min-h-screen flex left-0 justify-center items-center pt-12 pointer-events-none z-[50]">
+      <div className="fixed font-mono w-full min-h-screen flex left-0 justify-center items-center pt-12 pointer-events-none z-[50] text-[42px] leading-[82px]">
         <DictationCaption />
       </div>
 

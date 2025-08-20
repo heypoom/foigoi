@@ -37,8 +37,8 @@ export const Route = createRootRoute({
         <StatusIndicator />
       </div>
 
-      <AnimatedNoise />
       <HeadlessController />
+      <AnimatedNoise />
     </ProgramErrorBoundary>
   ),
 })

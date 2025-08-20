@@ -298,6 +298,8 @@ class Inference:
             print(f"Running inference with intermediate steps for {program_key}")
             callback_fn = create_step_callback(program_key, cue_id, variant_id, step_timings, self.pipe.vae)
 
+            print(f"callback param. prompt='{prompt}', g=7.0, steps={num_inference_steps}, w={width}, h={height}")
+
             images = self.pipe(
                 prompt=prompt,
                 num_images_per_prompt=1,

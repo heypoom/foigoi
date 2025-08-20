@@ -73,15 +73,16 @@ export const PromptInput = ({input, className}: Props) => {
 
           whiteSpace:
             String(input?.value)?.length <= E_MAX_CHARS ? 'nowrap' : 'pre-wrap',
+
+          fontSize: '72px',
+          lineHeight: '167px',
+          padding: '25px 49px',
+          fontWeight: 300,
         }}
         className={cx(
           'text-white font-mono text-center w-full',
           'resize-none overflow-hidden min-h-[40px]',
           'outline-none',
-
-          isExhibition
-            ? 'text-2xl p-2 px-4 py-2'
-            : 'text-[62px] leading-[102px]',
           className
         )}
         rows={1}
