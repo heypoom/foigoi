@@ -8,8 +8,8 @@ interface Props {
   className?: string
 }
 
-const E_MIN_WIDTH = 600
-const E_MAX_WIDTH = 1000
+const E_MIN_WIDTH = 2800
+const E_MAX_WIDTH = 3500
 const E_MIN_CHARS = 23
 const E_MAX_CHARS = 40
 
@@ -59,7 +59,7 @@ export const PromptInput = ({input, className}: Props) => {
 
   return (
     <div
-      className="flex items-center justify-center max-w-[1000px] w-full px-[20px]"
+      className="flex items-center justify-center w-full px-[20px]"
       style={{
         background: 'rgba(17, 17, 17, 0.5)',
         width: `${w}px`,
