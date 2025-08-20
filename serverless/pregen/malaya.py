@@ -21,7 +21,7 @@ DEFAULT_NUM_INFERENCE_STEPS = 40
 
 # Static pregen version ID. Use in case of future changes to the generation.
 # Example: different transcripts, model versions, or other significant changes.
-PREGEN_VERSION_ID = 4
+PREGEN_VERSION_ID = 5
 
 PREGEN_UPLOAD_STATUS_KEY = f"pregen/{PREGEN_VERSION_ID}/variant_upload_status"
 

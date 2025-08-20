@@ -25,7 +25,7 @@ DEFAULT_NUM_INFERENCE_STEPS = 10
 
 # Static pregen version ID. Use in case of future changes to the generation.
 # Example: different transcripts, model versions, or other significant changes.
-PREGEN_VERSION_ID = 4
+PREGEN_VERSION_ID = 5
 
 PREGEN_UPLOAD_STATUS_KEY = f"pregen/{PREGEN_VERSION_ID}/variant_upload_status"
 
@@ -275,12 +275,12 @@ class Inference:
 
         # Modify prompt based on program key to match legacy system
         if program_key == "P0":
-            modified_prompt = f"{prompt}, photorealistic"
+            modified_prompt = prompt
         elif program_key == "P3B":
-            modified_prompt = f"{prompt}, photorealistic"
+            modified_prompt = prompt
         elif program_key == "P4":
             if prompt.strip() in ["data researcher", "crowdworker", "big tech ceo"]:
-                modified_prompt = f"{prompt}, photorealistic"
+                modified_prompt = prompt
             else:
                 modified_prompt = prompt
         else:
@@ -288,13 +288,10 @@ class Inference:
 
         seed = seed if seed is not None else random.randint(0, 2**32 - 1)
         print(f"running inference for program {program_key}: '{modified_prompt}' with seed {seed}")
-        generator = torch.Generator("cuda").manual_seed(seed)
+        # generator = torch.Generator("cuda").manual_seed(seed)
 
         start_time = time.time()
         step_timings = {}
-
-        # Define negative prompt to filter out sexual content
-        negative_prompt = "nude, naked, sexual, explicit, adult content, breasts, genitals, pornography, erotic, nsfw, sex, lewd, hentai, boob, nipple, nipples"
 
         # Run the pipeline with callback for P1-P4, without callback for P0
         if program_key != "P0":
@@ -302,12 +299,10 @@ class Inference:
             callback_fn = create_step_callback(program_key, cue_id, variant_id, step_timings, self.pipe.vae)
 
             images = self.pipe(
-                prompt=modified_prompt,
-                negative_prompt=negative_prompt,
+                prompt=prompt,
                 num_images_per_prompt=1,
                 num_inference_steps=num_inference_steps,
-                guidance_scale=guidance_scale,
-                generator=generator,
+                guidance_scale=7.0,
                 width=width,
                 height=height,
                 callback_on_step_end=callback_fn,
@@ -316,7 +311,6 @@ class Inference:
             print(f"Running inference without intermediate steps for {program_key}")
             images = self.pipe(
                 prompt=modified_prompt,
-                negative_prompt=negative_prompt,
                 num_images_per_prompt=1,
                 num_inference_steps=num_inference_steps,
                 guidance_scale=guidance_scale,
