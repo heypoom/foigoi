@@ -11,7 +11,7 @@ export const DictationCaption = () => {
   if (!transcript) return null
 
   return (
-    <div className="text-center max-w-[2048px] px-2">
+    <div className="text-center max-w-[2048px] px-2 mb-[50px]">
       <div
         className={cn(
           'inline break-words bg-black py-2 px-6 font-extralight',
@@ -21,9 +21,9 @@ export const DictationCaption = () => {
         style={{
           boxDecorationBreak: 'clone',
           WebkitBoxDecorationBreak: 'clone',
-          fontSize: '72px',
-          lineHeight: '167px',
-          padding: '25px 49px',
+          fontSize: '78px',
+          lineHeight: '169px',
+          padding: '25px 55px',
           fontWeight: 300,
         }}
       >
