@@ -17,7 +17,7 @@ export const ImageDisplay = () => {
         src={crossfading ? prevUrl : url}
         alt=""
         className={cx(
-          'absolute h-screen object-cover object-center transition-opacity duration-[3s] ease-in-out pointer-events-none select-none z-[1]',
+          'absolute h-screen object-cover object-center transition-opacity duration-[3s] ease-in-out pointer-events-none select-none z-[1] w-full',
           visible ? 'opacity-100' : 'opacity-0'
         )}
       />
@@ -26,7 +26,7 @@ export const ImageDisplay = () => {
         src={url}
         alt=""
         className={cx(
-          'absolute h-screen object-cover object-center transition-opacity duration-[3s] ease-in-out pointer-events-none select-none z-[10]',
+          'absolute h-screen object-cover object-center transition-opacity duration-[3s] ease-in-out pointer-events-none select-none z-[10] w-full',
           crossfading ? 'opacity-100' : 'opacity-0'
         )}
       />

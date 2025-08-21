@@ -18,7 +18,7 @@ import {ProgressBadge} from '../components/ProgressBadge'
 export const Route = createRootRoute({
   component: () => (
     <ProgramErrorBoundary>
-      <div className="fixed flex left-3 bottom-3 z-[1000000] gap-x-1">
+      <div className="fixed flex left-4 bottom-4 z-[1000000] gap-x-3">
         <SettingsButton />
         <DebugTimeSlider />
         <CurrentProgramBadge />

@@ -19,7 +19,7 @@ SD3_TURBO_MODEL_NAME = "stabilityai/stable-diffusion-3.5-large-turbo"
 
 # Default generation parameters
 DEFAULT_WIDTH = 1920
-DEFAULT_HEIGHT = 1072
+DEFAULT_HEIGHT = 1080
 DEFAULT_GUIDANCE_SCALE = 0.0
 DEFAULT_NUM_INFERENCE_STEPS = 10
 
@@ -302,9 +302,10 @@ class Inference:
 
             images = self.pipe(
                 prompt=prompt,
+                negative_prompt="abstract pattern, pixel art, hyperrealistic, artistic",
                 num_images_per_prompt=1,
                 num_inference_steps=num_inference_steps,
-                guidance_scale=7.0,
+                guidance_scale=0.0,
                 width=width,
                 height=height,
                 callback_on_step_end=callback_fn,
