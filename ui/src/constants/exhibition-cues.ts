@@ -114,11 +114,11 @@ export const PROGRAM_CUES: AutomationCue[] = [
   // },
 
   // start program 3B
-  {time: '00:46:00', action: 'navigate', route: '/three-b'},
+  {time: '00:46:05', action: 'navigate', route: '/three-b'},
 
   // erase prompt
   {
-    time: '00:46:02',
+    time: '00:46:06',
     action: 'prompt',
     prompt: '',
     delay: {base: 30, variance: 20},
@@ -133,6 +133,10 @@ export const PROGRAM_CUES: AutomationCue[] = [
     program: 'P3B',
     prompt: 'chua mia tee painting',
     enter: {regen: true},
+
+    // 00:46:08 -> 00:46:25 is 17 seconds
+    inferenceStep: 50,
+    fixedDelayPerStep: 340,
   },
 
   // start program 4
