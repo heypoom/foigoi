@@ -204,6 +204,8 @@ export async function runOfflineAutomationAction(
         // prevent infinite loop
         let limit = 0
 
+        await delay(1000)
+
         // simulate hand-typing the transcript
         while (context.cue() === currentCue && words.length > 0) {
           if (limit++ > W_SAMPLING_LIMIT) break
