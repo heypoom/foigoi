@@ -29,7 +29,7 @@ export function ProgressBadge() {
   }
 
   return (
-    <div className="bg-[#2d2d30] text-white leading-3 px-[20px] py-[4px] text-[30px] rounded-full font-mono flex justify-center items-center">
+    <div className="bg-[#2d2d30] text-white leading-3 px-[20px] py-[4px] text-[35px] rounded-full font-mono flex justify-center items-center">
       {percent}%
     </div>
   )

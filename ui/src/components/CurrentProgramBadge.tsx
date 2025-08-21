@@ -30,11 +30,7 @@ export function CurrentProgramBadge() {
   // always show
   // indicate that we are on the video screen
   if (isVideo && isExhibitionMode) {
-    return (
-      <div className="bg-[#2d2d30] text-white px-[4px] py-[2px] text-xs rounded-lg">
-        <Icon icon="lucide:video" fontSize={16} />
-      </div>
-    )
+    return null
   }
 
   // hide program badge when there is no active program
