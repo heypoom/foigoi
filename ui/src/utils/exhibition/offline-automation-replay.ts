@@ -221,8 +221,8 @@ export async function simulateStepByStepInference(
     const totalSteps = getPreviewStepsForCue(cue)
     console.log(`steps for ${cue.action}#${cue.program} is ${totalSteps}`)
 
-    // Set initial timestep
-    $startTimestep.set(0)
+    // The startTimestep is the total number of steps.
+    $startTimestep.set(totalSteps)
     $timestep.set(0)
 
     for (let step = 0; step < totalSteps; step++) {
@@ -234,7 +234,7 @@ export async function simulateStepByStepInference(
       }
 
       // Update timestep
-      $timestep.set(step)
+      $timestep.set(totalSteps - step)
 
       const stepImagePath = generateOfflineImagePath(cue, variantId, step)
 
@@ -272,6 +272,8 @@ export async function simulateStepByStepInference(
         }
       }
     }
+
+    $timestep.set(0)
 
     // Final check before showing final image
     if (!shouldContinueInference(cue)) {
