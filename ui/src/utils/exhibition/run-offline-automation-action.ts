@@ -25,6 +25,8 @@ const W_SAMPLING_DELAY_MS = 70
 const W_SAMPLING_LIMIT = 100000
 const W_MIN_WORDS_FOR_TYPING = 1
 
+let transcriptionImageTimer: number | null = null
+
 export async function runOfflineAutomationAction(
   action: AutomationCue,
   context: AutomatorContext
@@ -194,36 +196,6 @@ export async function runOfflineAutomationAction(
       next()
     })
     .with({action: 'transcript'}, async (action) => {
-      if (action.generate && shouldHandleOfflineGeneration(action)) {
-        // For transcript, show final image directly without step-by-step preview
-        console.log(
-          `[offline] Loading final image for transcript: ${action.transcript}`
-        )
-
-        $generating.set(true)
-
-        try {
-          await simulateStepByStepInference(
-            action,
-            (imageUrl, _step, isComplete) => {
-              if (imageUrl) {
-                $inferencePreview.set(imageUrl)
-              }
-
-              if (isComplete) {
-                $generating.set(false)
-                console.log(
-                  `[offline] Loaded final image for transcript: ${action.transcript}`
-                )
-              }
-            }
-          )
-        } catch (error) {
-          console.error('[offline] Failed to load transcript image:', error)
-          $generating.set(false)
-        }
-      }
-
       if (action.words && action.words.length > W_MIN_WORDS_FOR_TYPING) {
         let sentence = ''
         let timePassed = 0
@@ -252,6 +224,46 @@ export async function runOfflineAutomationAction(
       }
 
       $transcript.set({transcript: action.transcript, final: false})
+
+      // Gladia word utterance
+      const [tStart, tEnd] = action.when ?? [0, 0]
+      const generationDelay = (tEnd - tStart) * 1000
+
+      if (action.generate && shouldHandleOfflineGeneration(action)) {
+        if (transcriptionImageTimer !== null) {
+          clearTimeout(transcriptionImageTimer)
+        }
+
+        transcriptionImageTimer = setTimeout(async () => {
+          // For transcript, show final image directly without step-by-step preview
+          console.log(
+            `[offline] Loading final image for transcript: ${action.transcript}`
+          )
+
+          $generating.set(true)
+
+          try {
+            await simulateStepByStepInference(
+              action,
+              (imageUrl, _step, isComplete) => {
+                if (imageUrl) {
+                  $inferencePreview.set(imageUrl)
+                }
+
+                if (isComplete) {
+                  $generating.set(false)
+                  console.log(
+                    `[offline] Loaded final image for transcript: ${action.transcript}`
+                  )
+                }
+              }
+            )
+          } catch (error) {
+            console.error('[offline] Failed to load transcript image:', error)
+            $generating.set(false)
+          }
+        }, generationDelay)
+      }
     })
     .with({action: 'reconnect'}, () => {
       // In offline mode, we don't need to reconnect to server
