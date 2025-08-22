@@ -17,8 +17,6 @@ function ZeroRoute() {
     }, 50)
   })
 
-  if (isBlackout) return null
-
   return (
     <main>
       <div className="fixed font-mono w-full min-h-screen flex left-0 justify-center items-center pt-12 pointer-events-none z-[50] text-[42px] leading-[82px]">

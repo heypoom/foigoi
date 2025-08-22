@@ -199,11 +199,6 @@ export const PROGRAM_CUES: AutomationCue[] = [
   },
 
   {
-    time: '01:12:21',
-    action: 'end',
-  },
-
-  {
     time: SCREENING_END_TIME,
     action: 'end',
   },

@@ -39,7 +39,6 @@ export const AnimatedNoise = () => {
   }, [isNoNoiseRoute, paint])
 
   if (isNoNoiseRoute) return null
-  if (isBlackout) return null
 
   return (
     <div
