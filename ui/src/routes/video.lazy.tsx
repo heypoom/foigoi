@@ -111,6 +111,10 @@ function VideoRoute() {
         onTimeUpdate={(e) => {
           $videoTimestamp.set(e.currentTarget.currentTime)
           $muted.set(e.currentTarget.muted)
+          automator.sendIpcAction({
+            type: 'video-send-video-time',
+            elapsed: e.currentTarget.currentTime,
+          })
         }}
       ></video>
     </div>

@@ -9,7 +9,7 @@ import {
   FADE_OUT_TIME,
 } from '../../constants/exhibition-cues'
 import {loadTranscriptCue} from './cue-from-transcript'
-import {getCurrentCue} from './get-current-cue'
+import {getCurrentCue, getCurrentCueRaw} from './get-current-cue'
 import {
   AutomatorContext,
   runAutomationAction,
@@ -47,6 +47,8 @@ export class ExhibitionAutomator {
 
   cues: AutomationCue[] = []
   currentCue = -1
+
+  videoIpcTime: number | null = null
 
   // singapore usually drifts by 2 seconds
   timeDrift: number = 2
@@ -151,6 +153,9 @@ export class ExhibitionAutomator {
         // this.sync({force: true})
 
         console.log(`[ipc] we play the video`, msg)
+      })
+      .with({type: 'video-send-video-time'}, (msg) => {
+        this.videoIpcTime = msg.elapsed
       })
       .exhaustive()
   }
@@ -373,9 +378,26 @@ export class ExhibitionAutomator {
     }
   }
 
+  seekCueByRawTime(videoTime: number) {
+    const seq = getCurrentCueRaw(videoTime, this.cues)
+    if (!seq) {
+      console.log('no cue found for', videoTime)
+      return
+    }
+
+    const [cue] = seq
+    if (this.currentCue !== cue) {
+      this.currentCue = cue
+      console.log(`seeking to cue ${cue} | t=${videoTime}`)
+    }
+  }
+
   get elapsed(): number {
     // this means that the video is not ready yet, as it does not have a configured start time
     if (this.startTime === null) return -1
+
+    // use the synchronized ipc time
+    if (this.videoIpcTime !== null) return this.videoIpcTime
 
     return dayjs(this.now()).diff(this.startTime, 'seconds')
   }
