@@ -184,6 +184,8 @@ export function runAutomationAction(
       setTimeout(() => {
         $fadeStatus.set(false)
       }, 500)
+
+      navigate('/zero')
     })
     .exhaustive()
 }

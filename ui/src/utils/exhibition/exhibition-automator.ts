@@ -157,6 +157,9 @@ export class ExhibitionAutomator {
       .with({type: 'video-send-video-time'}, (msg) => {
         if (msg.elapsed >= msg.duration) {
           this.videoIpcTime = null
+          console.log(`time over elapsed, setting videoIpcTime to null`, msg)
+          this.stopClock()
+          this.sync({force: true})
         } else {
           this.videoIpcTime = msg.elapsed
         }

@@ -3,7 +3,7 @@ import {GladiaWord} from '../types/gladia-transcript'
 
 export const PROGRAM_ZERO_START_TIME = '00:06:47'
 export const PROGRAM_ZERO_END_TIME = '00:34:24'
-export const SCREENING_END_TIME = '01:13:00'
+export const SCREENING_END_TIME = '01:14:00'
 
 export const FADE_IN_TIME = '00:06:45'
 export const FADE_OUT_TIME = '01:12:15'

@@ -5,17 +5,22 @@ import {ImageDisplay} from '../image/ImageDisplay'
 
 import {useHotkeys} from 'react-hotkeys-hook'
 import {useStore} from '@nanostores/react'
+import {$fadeStatus} from '../store/fader'
 
 export const Route = createLazyFileRoute('/zero')({
   component: ZeroRoute,
 })
 
 function ZeroRoute() {
+  const fadeStatus = useStore($fadeStatus)
+
   useHotkeys('space', () => {
     setTimeout(() => {
       dictation.restart('spacebar hotkey')
     }, 50)
   })
+
+  if (fadeStatus) return null
 
   return (
     <main>

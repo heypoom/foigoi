@@ -96,6 +96,7 @@ export async function runOfflineAutomationAction(
     .with({action: 'set-fade-status'}, (action) => {
       setTimeout(() => {
         $fadeStatus.set(action.fade)
+        console.log('wait and fade')
       }, 500)
     })
     .with({action: 'navigate'}, (action) => {
