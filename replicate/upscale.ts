@@ -22,7 +22,7 @@ const queue = new PQueue({concurrency: 10})
 console.log(`replicate token:`, process.env.REPLICATE_API_TOKEN)
 
 for (const path of PATHS) {
-  for (let variantId = 1; variantId <= 30; variantId++) {
+  for (let variantId = 31; variantId <= 50; variantId++) {
     const imagePath = `${path}/${variantId}`
     const imageUrl = `${BASE}/${imagePath}/final.png`
     const pathPrefix = `./out2/${imagePath}`

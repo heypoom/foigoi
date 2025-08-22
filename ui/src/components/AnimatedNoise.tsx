@@ -2,11 +2,14 @@ import {useCallback, useEffect, useRef} from 'react'
 
 import {paintDenseNoise} from '../utils/noise'
 import {useMatchRoute} from '@tanstack/react-router'
+import {useStore} from '@nanostores/react'
+import {$endingBlackout} from '../store/fader'
 
 export const AnimatedNoise = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const mr = useMatchRoute()
+  const isBlackout = useStore($endingBlackout)
 
   // these routes are no-noise routes
   const isNoNoiseRoute =
@@ -39,6 +42,7 @@ export const AnimatedNoise = () => {
   }, [isNoNoiseRoute, paint])
 
   if (isNoNoiseRoute) return null
+  if (isBlackout) return null
 
   return (
     <div

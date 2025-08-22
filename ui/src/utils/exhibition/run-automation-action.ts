@@ -2,7 +2,7 @@ import {match} from 'ts-pattern'
 import {Tween, Easing} from '@tweenjs/tween.js'
 
 import {AutomationAction} from '../../constants/exhibition-cues'
-import {$fadeStatus} from '../../store/fader'
+import {$endingBlackout, $fadeStatus} from '../../store/fader'
 import {$guidance} from '../../store/guidance'
 import {$generating, $inferencePreview, $prompt} from '../../store/prompt'
 import {keystrokeStream, getRandomDelay} from './keystroke-stream'
@@ -41,6 +41,7 @@ export function runScreeningStartTask() {
   resetAll()
 
   $fadeStatus.set(true)
+  $endingBlackout.set(false)
 }
 
 export function runAutomationAction(
@@ -180,6 +181,7 @@ export function runAutomationAction(
       $prompt.set('')
       $transcript.set({transcript: '', final: false})
       $inferencePreview.set('')
+      $endingBlackout.set(true)
 
       setTimeout(() => {
         $fadeStatus.set(false)
