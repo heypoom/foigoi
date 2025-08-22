@@ -185,6 +185,12 @@ export const PROGRAM_CUES: AutomationCue[] = [
     enter: {regen: true},
   },
 
+  // cleanup before the screening ends
+  {
+    time: '01:12:10',
+    action: 'reconnect',
+  },
+
   // fade to black
   {
     time: FADE_OUT_TIME,
@@ -192,11 +198,11 @@ export const PROGRAM_CUES: AutomationCue[] = [
     fade: true,
   },
 
-  // cleanup before the screening ends
-  // {
-  //   time: '01:12:11',
-  //   action: 'reconnect',
-  // },
+  {
+    time: '01:12:20',
+    action: 'set-fade-status',
+    fade: true,
+  },
 
   {
     time: SCREENING_END_TIME,
