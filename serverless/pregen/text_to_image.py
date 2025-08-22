@@ -13,19 +13,16 @@ app = modal.App(APP_NAME)
 
 SUPPORTED_PROGRAMS = ["P0", "P3", "P3B", "P4"]
 CHUAMIATEE_PROGRAMS = ["P3", "P3B"]
-SD3_TURBO_CACHE_DIR = "/cache/sd3-turbo"
-
-SD3_TURBO_MODEL_NAME = "stabilityai/stable-diffusion-3.5-large-turbo"
 
 # Default generation parameters
 DEFAULT_WIDTH = 1920
 DEFAULT_HEIGHT = 1080
-DEFAULT_GUIDANCE_SCALE = 0.0
-DEFAULT_NUM_INFERENCE_STEPS = 10
+DEFAULT_GUIDANCE_SCALE = 7.5
+DEFAULT_NUM_INFERENCE_STEPS = 40
 
 # Static pregen version ID. Use in case of future changes to the generation.
 # Example: different transcripts, model versions, or other significant changes.
-PREGEN_VERSION_ID = 5
+PREGEN_VERSION_ID = 6
 
 PREGEN_UPLOAD_STATUS_KEY = f"pregen/{PREGEN_VERSION_ID}/variant_upload_status"
 
@@ -52,7 +49,7 @@ image = (
 with image.imports():
     import torch
     import PIL.Image as PILImage
-    from diffusers.pipelines.stable_diffusion_3.pipeline_stable_diffusion_3 import StableDiffusion3Pipeline
+    from diffusers import AutoPipelineForText2Image
     from valkey import Valkey
     import boto3
 
@@ -85,7 +82,7 @@ def latents_to_rgb(latents):
 
     return PILImage.fromarray(image_array)
 
-def create_step_callback(program_key, cue_id, variant_id, step_timings, vae_decoder):
+def create_step_callback(program_key, cue_id, variant_id, step_timings):
     """Creates callback to capture intermediate steps"""
     def on_step_end(pipeline, step, timestep, callback_kwargs):
         # Only capture for P1-P4, skip P0
@@ -99,12 +96,8 @@ def create_step_callback(program_key, cue_id, variant_id, step_timings, vae_deco
         # Extract latents
         latents = callback_kwargs["latents"]
 
-        # More robust approach using the VAE decoder directly
-        latents = 1 / vae_decoder.config.scaling_factor * latents
-        image = vae_decoder.decode(latents).sample
-        image = (image / 2 + 0.5).clamp(0, 1) # Normalize to [0, 1]
-        image = image.cpu().permute(0, 2, 3, 1).float().numpy() # Convert to (batch, H, W, C) numpy array
-        preview_image = PILImage.fromarray((image[0] * 255).astype("uint8")) # Take first image from batch
+        # Use latents_to_rgb for SDXL latent decoding (matches legacy system)
+        preview_image = latents_to_rgb(latents)
         
         # Save intermediate image to R2
         with io.BytesIO() as buf:
@@ -215,15 +208,11 @@ class Inference:
     def initialize(self):
         print("initializing pipeline...")
 
-        self.pipe = StableDiffusion3Pipeline.from_pretrained(
-
-            SD3_TURBO_MODEL_NAME,
-            cache_dir=SD3_TURBO_CACHE_DIR,
-
-            torch_dtype=torch.bfloat16,
-
+        self.pipe = AutoPipelineForText2Image.from_pretrained(
+            SDXL_MODEL_NAME,
+            cache_dir=SDXL_CACHE_DIR,
+            torch_dtype=torch.float16,
             token=os.environ["HF_TOKEN"]
-
         )
 
         self.vk = Valkey("raya.poom.dev", username="default", password=os.environ["VALKEY_PASSWORD"])
@@ -257,8 +246,8 @@ class Inference:
         cue_id: str,
         variant_id: int,
         seed: Optional[int] = None,
-        width: int = DEFAULT_WIDTH,
-        height: int = DEFAULT_HEIGHT,
+        width: Optional[int] = None,
+        height: Optional[int] = None,
         guidance_scale: float = DEFAULT_GUIDANCE_SCALE,
         num_inference_steps: int = DEFAULT_NUM_INFERENCE_STEPS,
     ) -> str:
@@ -273,14 +262,25 @@ class Inference:
         # Ensure LORA is in the correct state
         self._ensure_lora_state(use_lora)
 
+        if width is None or height is None:
+            if program_key.startswith("P3"):
+                width, height = random.choice([
+                    (960, 800),
+                    (800, 960),
+                    (960, 960),
+                    (960, 640),
+                ])
+            else:
+                width, height = [DEFAULT_WIDTH, DEFAULT_HEIGHT]
+
         # Modify prompt based on program key to match legacy system
         if program_key == "P0":
-            modified_prompt = prompt
+            modified_prompt = f"{prompt}, photorealistic"
         elif program_key == "P3B":
-            modified_prompt = prompt
+            modified_prompt = f"{prompt}, photorealistic"
         elif program_key == "P4":
             if prompt.strip() in ["data researcher", "crowdworker", "big tech ceo"]:
-                modified_prompt = prompt
+                modified_prompt = f"{prompt}, photorealistic"
             else:
                 modified_prompt = prompt
         else:
@@ -288,24 +288,26 @@ class Inference:
 
         seed = seed if seed is not None else random.randint(0, 2**32 - 1)
         print(f"running inference for program {program_key}: '{modified_prompt}' with seed {seed}")
-        # generator = torch.Generator("cuda").manual_seed(seed)
+        generator = torch.Generator("cuda").manual_seed(seed)
 
         start_time = time.time()
         step_timings = {}
 
+        # Define negative prompt to filter out sexual content
+        negative_prompt = "nude, naked, sexual, explicit, adult content, breasts, genitals, pornography, erotic, nsfw, sex, lewd, hentai, boob, nipple, nipples"
+
         # Run the pipeline with callback for P1-P4, without callback for P0
         if program_key != "P0":
             print(f"Running inference with intermediate steps for {program_key}")
-            callback_fn = create_step_callback(program_key, cue_id, variant_id, step_timings, self.pipe.vae)
-
-            print(f"callback param. prompt='{prompt}', g=7.0, steps={num_inference_steps}, w={width}, h={height}")
+            callback_fn = create_step_callback(program_key, cue_id, variant_id, step_timings)
 
             images = self.pipe(
-                prompt=prompt,
-                negative_prompt="abstract pattern, pixel art, hyperrealistic, artistic",
+                prompt=modified_prompt,
+                negative_prompt=negative_prompt,
                 num_images_per_prompt=1,
                 num_inference_steps=num_inference_steps,
-                guidance_scale=0.0,
+                guidance_scale=guidance_scale,
+                generator=generator,
                 width=width,
                 height=height,
                 callback_on_step_end=callback_fn,
@@ -314,6 +316,7 @@ class Inference:
             print(f"Running inference without intermediate steps for {program_key}")
             images = self.pipe(
                 prompt=modified_prompt,
+                negative_prompt=negative_prompt,
                 num_images_per_prompt=1,
                 num_inference_steps=num_inference_steps,
                 guidance_scale=guidance_scale,
