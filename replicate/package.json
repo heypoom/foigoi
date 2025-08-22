@@ -2,9 +2,13 @@
   "name": "replicate",
   "private": true,
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/p-queue": "^3.2.1"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "replicate": "^1.1.0"
   }
 }
