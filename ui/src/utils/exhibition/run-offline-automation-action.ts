@@ -94,7 +94,9 @@ export async function runOfflineAutomationAction(
         .start()
     })
     .with({action: 'set-fade-status'}, (action) => {
-      $fadeStatus.set(action.fade)
+      setTimeout(() => {
+        $fadeStatus.set(action.fade)
+      }, 500)
     })
     .with({action: 'navigate'}, (action) => {
       $generating.set(false)

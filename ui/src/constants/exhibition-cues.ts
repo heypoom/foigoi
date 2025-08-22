@@ -193,10 +193,10 @@ export const PROGRAM_CUES: AutomationCue[] = [
   },
 
   // cleanup before the screening ends
-  {
-    time: '01:12:11',
-    action: 'reconnect',
-  },
+  // {
+  //   time: '01:12:11',
+  //   action: 'reconnect',
+  // },
 
   {
     time: SCREENING_END_TIME,
