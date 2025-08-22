@@ -155,7 +155,11 @@ export class ExhibitionAutomator {
         console.log(`[ipc] we play the video`, msg)
       })
       .with({type: 'video-send-video-time'}, (msg) => {
-        this.videoIpcTime = msg.elapsed
+        if (msg.elapsed >= msg.duration) {
+          this.videoIpcTime = null
+        } else {
+          this.videoIpcTime = msg.elapsed
+        }
       })
       .exhaustive()
   }

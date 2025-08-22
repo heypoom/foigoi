@@ -3,6 +3,8 @@ node_modules
 
 # output
 out
+out-o1
+out2
 dist
 *.tgz
 
