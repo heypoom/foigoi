@@ -199,12 +199,6 @@ export const PROGRAM_CUES: AutomationCue[] = [
   },
 
   {
-    time: '01:12:20',
-    action: 'set-fade-status',
-    fade: true,
-  },
-
-  {
     time: '01:12:21',
     action: 'end',
   },

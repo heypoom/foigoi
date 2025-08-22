@@ -2,7 +2,7 @@ import {match} from 'ts-pattern'
 import {Tween, Easing} from '@tweenjs/tween.js'
 
 import {AutomationAction} from '../../constants/exhibition-cues'
-import {$endingBlackout, $fadeStatus} from '../../store/fader'
+import {$fadeStatus} from '../../store/fader'
 import {$guidance} from '../../store/guidance'
 import {$generating, $inferencePreview, $prompt} from '../../store/prompt'
 import {keystrokeStream, getRandomDelay} from './keystroke-stream'
@@ -74,11 +74,9 @@ export function runAutomationAction(
     })
     .with({action: 'set-fade-status'}, (action) => {
       $fadeStatus.set(action.fade)
-      $endingBlackout.set(action.fade)
     })
     .with({action: 'navigate'}, (action) => {
       $generating.set(false)
-      $endingBlackout.set(false)
       resetProgress()
       disableRegen('scene switch')
 
@@ -182,7 +180,6 @@ export function runAutomationAction(
       $prompt.set('')
       $transcript.set({transcript: '', final: false})
       $inferencePreview.set('')
-      $endingBlackout.set(true)
 
       setTimeout(() => {
         $fadeStatus.set(false)
