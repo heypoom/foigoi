@@ -41,7 +41,6 @@ export function runScreeningStartTask() {
   resetAll()
 
   $fadeStatus.set(true)
-  $endingBlackout.set(false)
 }
 
 export function runAutomationAction(
@@ -75,9 +74,11 @@ export function runAutomationAction(
     })
     .with({action: 'set-fade-status'}, (action) => {
       $fadeStatus.set(action.fade)
+      $endingBlackout.set(action.fade)
     })
     .with({action: 'navigate'}, (action) => {
       $generating.set(false)
+      $endingBlackout.set(false)
       resetProgress()
       disableRegen('scene switch')
 
