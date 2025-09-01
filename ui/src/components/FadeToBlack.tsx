@@ -20,6 +20,8 @@ export const FadeToBlack = () => {
         isFaderVisible ? 'opacity-100' : 'opacity-0'
       }`}
       style={{pointerEvents: isFaderVisible ? 'auto' : 'none'}}
+      data-testid="fade-to-black"
+      data-fader-visible={isFaderVisible}
     />
   )
 }

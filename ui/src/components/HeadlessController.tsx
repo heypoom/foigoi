@@ -44,7 +44,7 @@ export const HeadlessController = () => {
     automator.sync({force: true})
     fullscreen()
 
-    go({to: '/zero'})
+    go({to: '/black'})
   }
 
   // exhibition mode - video

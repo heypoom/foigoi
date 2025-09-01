@@ -11,6 +11,7 @@ export const AnimatedNoise = () => {
   // these routes are no-noise routes
   const isNoNoiseRoute =
     mr({to: '/'}) ||
+    mr({to: '/black'}) ||
     mr({to: '/zero'}) ||
     mr({to: '/video'}) ||
     mr({to: '/image-viewer'})

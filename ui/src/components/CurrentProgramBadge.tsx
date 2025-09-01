@@ -35,6 +35,9 @@ export function CurrentProgramBadge() {
   // hide program badge when there is no active program
   if (!currentProgram) return null
 
+  // don't show on black route
+  if (mr({to: '/black'})) return null
+
   // hide program badge when on the speech route
   if (isSpeechRoute) return null
 

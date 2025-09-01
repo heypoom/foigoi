@@ -36,7 +36,7 @@ export function SettingsRoute() {
     automator.sync({force: true})
     fullscreen()
 
-    go({to: '/zero'})
+    go({to: '/black'})
   }
 
   // exhibition mode - video
@@ -97,7 +97,6 @@ export function SettingsRoute() {
       automator.sync({force: true})
     }
   }
-
 
   return (
     <div className="flex flex-col items-center justify-center h-full font-mono min-h-screen bg-black text-white gap-y-8">

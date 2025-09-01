@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react'
 import {createLazyFileRoute} from '@tanstack/react-router'
 import cx from 'classnames'
 import {useStore} from '@nanostores/react'
-import { Loader, VolumeX } from 'lucide-react'
+import {Loader, VolumeX} from 'lucide-react'
 
 import {$videoTimestamp} from '../store/timestamps'
 
@@ -116,6 +116,7 @@ function VideoRoute() {
             type: 'video-send-video-time',
             elapsed: e.currentTarget.currentTime,
             duration: e.currentTarget.duration,
+            status: $exhibitionStatus.get(),
           })
         }}
       ></video>

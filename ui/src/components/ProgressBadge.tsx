@@ -15,6 +15,9 @@ export function ProgressBadge() {
 
   if (isVideo) return null
 
+  // placeholder route
+  if (mr({to: '/black'})) return null
+
   // P0 is super fast no need for progress badge
   if (mr({to: '/zero'})) return null
 

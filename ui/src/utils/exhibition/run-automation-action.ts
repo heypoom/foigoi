@@ -185,7 +185,7 @@ export function runAutomationAction(
         $fadeStatus.set(false)
       }, 500)
 
-      navigate('/zero')
+      navigate('/black')
     })
     .exhaustive()
 }

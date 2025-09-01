@@ -35,7 +35,6 @@ import {resetAll} from './reset'
 import {compareTimecode} from './compare-timecode'
 import {transcriptWithinTimeRange} from './exclude-transcription-before'
 import {$programTimestamp} from '../../store/timestamps'
-import {getServerTimeDrift} from './get-system-time-drift'
 import {runOfflineAutomationAction} from './run-offline-automation-action'
 import {shouldHandleOfflineGeneration} from './offline-automation-replay'
 import {routeFromCue} from './route-from-cue'
@@ -50,9 +49,6 @@ export class ExhibitionAutomator {
 
   videoIpcTime: number | null = null
 
-  // singapore usually drifts by 2 seconds
-  timeDrift: number = 2
-
   private startTime: Dayjs | null = null
 
   ipc = new BroadcastChannel('exhibition-ipc')
@@ -62,7 +58,7 @@ export class ExhibitionAutomator {
   programVideoRef: HTMLVideoElement | null = null
 
   // allows emulation of time
-  now = () => new Date(new Date().getTime() + this.timeDrift)
+  now = () => new Date(new Date().getTime())
 
   dynamicMockedTime: string | null = null
 
@@ -80,20 +76,7 @@ export class ExhibitionAutomator {
     }
   }
 
-  async computeDrift() {
-    try {
-      const medianDrift = await getServerTimeDrift()
-      this.timeDrift = medianDrift
-
-      console.log(`Final result: Median drift is ${medianDrift}ms`)
-    } catch (error) {
-      console.error('Error:', error)
-    }
-  }
-
   async setup() {
-    // this.computeDrift()
-
     this.ipc.addEventListener('message', this.onIpcMessage)
 
     // send the ping message to discover other windows
@@ -130,38 +113,40 @@ export class ExhibitionAutomator {
       .with({type: 'ping'}, () => {
         this.sendIpcAction({type: 'pong', isVideoMode, elapsed: this.elapsed})
       })
-      .with({type: 'pong'}, (msg) => {
-        // if there are already a window in video mode, switch to program mode.
-        if (isVideoMode) {
-          // this.syncIpcMockedTime(msg)
-
-          // switch to PROGRAM mode
-          // $videoMode.set(false)
-
-          // this.sync({force: true})
-
-          console.log(
-            `[ipc] video exists! we switch ourselves to program mode`,
-            msg
-          )
-        }
-      })
+      .with({type: 'pong'}, () => {})
       .with({type: 'play'}, (msg) => {
         if (!isVideoMode || !this.videoRef) return
 
         this.syncIpcMockedTime(msg)
-        // this.sync({force: true})
 
         console.log(`[ipc] we play the video`, msg)
       })
       .with({type: 'video-send-video-time'}, (msg) => {
-        if (msg.elapsed >= msg.duration) {
+        const status = $exhibitionStatus.get()
+        let shouldSync = false
+
+        // sync exhibition status from video screen!
+        if (msg.status.type !== status.type) {
+          shouldSync = true
+          $exhibitionStatus.set(msg.status)
+
+          console.log('-- sync exhibition status from video:', msg)
+        } else if (msg.elapsed >= msg.duration) {
+          shouldSync = true
           this.videoIpcTime = null
           console.log(`time over elapsed, setting videoIpcTime to null`, msg)
-          this.stopClock()
-          this.sync({force: true})
         } else {
           this.videoIpcTime = msg.elapsed
+        }
+
+        if (shouldSync) {
+          console.log('--- ✨ syncing', msg)
+
+          if (msg.dynamicMockedTime) {
+            this.mockTimeByTimestamp(msg.time)
+          }
+
+          this.sync({force: true})
         }
       })
       .exhaustive()
@@ -251,6 +236,7 @@ export class ExhibitionAutomator {
     const meta: IpcMeta = {
       ipcId: this.ipcId,
       dynamicMockedTime: this.dynamicMockedTime,
+      time: +this.now(),
     }
 
     const message: IpcMessage = {...action, ...meta}
@@ -410,23 +396,22 @@ export class ExhibitionAutomator {
   }
 
   /** Mock the time source. */
-  mockTime(time: string, dynamic = true) {
+  mockTime(time: string) {
     const origin = hhmmssOf(time)
 
-    if (!dynamic) {
-      this.now = () => origin
-      return
-    }
-
     this.dynamicMockedTime = time
+    this.mockTimeByTimestamp(+origin)
+  }
 
+  mockTimeByTimestamp(timestamp: number) {
     const start = new Date()
+    console.log('mocking time:', timestamp)
 
     // Simulates passage of time
     this.now = () => {
       const elapsed = dayjs().diff(start, 'seconds')
 
-      return dayjs(origin).add(elapsed, 'seconds').toDate()
+      return dayjs(timestamp).add(elapsed, 'seconds').toDate()
     }
   }
 
@@ -470,9 +455,15 @@ export class ExhibitionAutomator {
     setTimeout(() => {
       match(next.type)
         .with('loading', () => {})
-        .with('wait', () => {})
-        .with('closed', () => {})
+        .with('wait', () => {
+          $fadeStatus.set(false)
+        })
+        .with('closed', () => {
+          $fadeStatus.set(false)
+        })
         .with('active', () => {
+          console.log('restoring route from cue:', this.currentCue)
+
           if (!this.isVideo) {
             this.restoreRouteFromCue()
           }
@@ -515,6 +506,13 @@ export class ExhibitionAutomator {
   restoreRouteFromCue() {
     if (this.isVideo) return
 
+    const status = $exhibitionStatus.get()
+
+    if (status.type !== 'active') {
+      console.log(`[!] restoring but status is not active`, status)
+      return
+    }
+
     // Set fade status based on current time
     const fadeInSeconds = secOf(FADE_IN_TIME)
     const fadeOutSeconds = secOf(FADE_OUT_TIME)
@@ -527,6 +525,12 @@ export class ExhibitionAutomator {
 
     console.log(`-- set $fadeStatus: ${!shouldShowContent}`)
     $fadeStatus.set(!shouldShowContent)
+
+    // use the black screen to avoid showing content.
+    if (!shouldShowContent) {
+      this.actionContext.navigate('/black')
+      return
+    }
 
     // Restore route based on current cue
     const route = routeFromCue(this.currentCue, this.cues)
