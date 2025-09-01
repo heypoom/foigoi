@@ -525,6 +525,7 @@ export class ExhibitionAutomator {
     const shouldShowContent =
       currentSeconds >= fadeInSeconds && currentSeconds <= fadeOutSeconds
 
+    console.log(`-- set $fadeStatus: ${!shouldShowContent}`)
     $fadeStatus.set(!shouldShowContent)
 
     // Restore route based on current cue

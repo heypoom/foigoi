@@ -50,7 +50,7 @@ export function WaitingRoomScreen() {
         status.type === 'wait' ? 'opacity-100' : 'opacity-0 pointer-events-none'
       )}
     >
-      <h1 className="text-8xl">Next screening in {countdown}</h1>
+      <h1 className="text-8xl text-center">Next screening in {countdown}</h1>
     </div>
   )
 }
