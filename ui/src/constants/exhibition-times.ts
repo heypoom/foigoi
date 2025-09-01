@@ -2,26 +2,26 @@
 export const SCREENING_DURATION = 74 * 60 * 1000
 
 /**
- * The exhibition runs from 9am to 9pm.
+ * The exhibition runs from 10am to 10pm.
  * The video restarts every 75 minutes.
  * The video itself is 74 minutes long, followed by a 1-minute countdown.
  *
- * This means the video will restart at 9:00 (opening time), 10:15, 11:30, 12:45, 14:00,
- * 15:15, 16:30, 17:45, 19:00, and 20:15.
- * The last screening starts at 20:15, and the exhibition closes at 21:00.
+ * This means the video will restart at 10:00 (opening time), 11:15, 12:30, 13:45, 15:00,
+ * 16:15, 17:30, 18:45, 20:00, and 21:15.
+ * The last screening starts at 21:15, and the exhibition closes at 22:00.
  */
 export function getExhibitionTimes() {
   const EXHIBITION_TIMES: string[] = [
-    '09:00',
-    '10:15',
-    '11:30',
-    '12:45',
-    '14:00',
-    '15:15',
-    '16:30',
-    '17:45',
-    '19:00',
-    '20:15',
+    '10:00',
+    '11:15',
+    '12:30',
+    '13:45',
+    '15:00',
+    '16:15',
+    '17:30',
+    '18:45',
+    '20:00',
+    '21:15',
   ]
 
   return EXHIBITION_TIMES

@@ -29,7 +29,7 @@ export function DebugTimeSlider() {
   const [showTimeSlider, setShowTimeSlider] = useState(false)
 
   // Calculate slider range - use absolute times
-  const exhibitionStartTime = '09:00:00' // First exhibition run starts at 09:00:00
+  const exhibitionStartTime = '10:00:00' // First exhibition run starts at 10:00:00
   const screeningDurationSeconds = timeToSeconds(SCREENING_END_TIME) // Duration of one screening
   const exhibitionEndTime = addSecondsToTime(
     exhibitionStartTime,
