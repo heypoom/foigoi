@@ -2,7 +2,7 @@ import {useState} from 'react'
 import {automator} from '../utils/exhibition/exhibition-automator'
 import {resetAll} from '../utils/exhibition/reset'
 import {SCREENING_END_TIME} from '../constants/exhibition-cues'
-import {Icon} from '@iconify/react'
+import { Clock } from 'lucide-react'
 
 // Convert hh:mm:ss to total seconds
 function timeToSeconds(time: string): number {
@@ -71,7 +71,7 @@ export function DebugTimeSlider() {
         title="Debug time slider"
         aria-label="Open debug time slider"
       >
-        <Icon icon="lucide:clock" fontSize={30} />
+        <Clock size={30} />
       </button>
 
       {showTimeSlider && (

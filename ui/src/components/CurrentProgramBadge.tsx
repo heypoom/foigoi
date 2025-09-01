@@ -1,4 +1,3 @@
-import {Icon} from '@iconify/react'
 import {useMatchRoute, useRouterState} from '@tanstack/react-router'
 
 import {useIsVideo} from '../hooks/useIsVideo'

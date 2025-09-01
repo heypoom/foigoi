@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react'
 import {createLazyFileRoute} from '@tanstack/react-router'
 import cx from 'classnames'
 import {useStore} from '@nanostores/react'
-import {Icon} from '@iconify/react'
+import { Loader, VolumeX } from 'lucide-react'
 
 import {$videoTimestamp} from '../store/timestamps'
 
@@ -74,7 +74,7 @@ function VideoRoute() {
         <div className="flex items-center justify-center absolute w-full h-full z-50 cursor-pointer">
           <div className="flex items-center justify-center gap-x-6 absolute bottom-5 bg-gray-900 px-6 py-1 rounded-xl">
             <div className="">
-              <Icon icon="lucide:loader" fontSize={40} />
+              <Loader size={40} />
             </div>
 
             <div className="">video is loading...</div>
@@ -91,7 +91,7 @@ function VideoRoute() {
         >
           <div className="flex items-center justify-center gap-x-6 absolute bottom-5 bg-gray-900 px-6 py-1 rounded-xl">
             <div className="">
-              <Icon icon="lucide:volume-x" fontSize={50} />
+              <VolumeX size={50} />
             </div>
 
             <div className="">click anywhere to play sound</div>
