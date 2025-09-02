@@ -33,7 +33,7 @@ export function WaitingRoomScreen() {
   useEffect(() => {
     const timer = setInterval(() => {
       tick()
-    }, 500)
+    }, 100)
 
     return () => clearInterval(timer)
   }, [tick])
