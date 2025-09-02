@@ -278,6 +278,8 @@ export async function runOfflineAutomationAction(
       console.log('[offline] Skipping reconnect - running in offline mode')
     })
     .with({action: 'end'}, () => {
+      context.navigate('/black')
+
       $prompt.set('')
       $transcript.set({transcript: '', final: false})
       $inferencePreview.set('')
