@@ -5,7 +5,6 @@ import {$fadeStatus} from '../store/fader'
 import {useStore} from '@nanostores/react'
 import {resetProgress} from '../store/progress'
 import {dictation} from '../dictation'
-import {socket} from '../manager/socket'
 import {disableRegen} from '../store/regen'
 import {$exhibitionMode, $videoMode} from '../store/exhibition'
 

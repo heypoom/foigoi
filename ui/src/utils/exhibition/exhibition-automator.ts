@@ -29,7 +29,7 @@ import {
   $offlineMode,
 } from '../../store/exhibition'
 import {getExhibitionStatus} from './get-exhibition-status'
-import {match} from 'ts-pattern'
+import {match, P} from 'ts-pattern'
 import {IpcAction, IpcMessage, IpcMeta} from '../../store/window-ipc'
 import {resetAll} from './reset'
 import {compareTimecode} from './compare-timecode'
@@ -455,10 +455,11 @@ export class ExhibitionAutomator {
     setTimeout(() => {
       match(next.type)
         .with('loading', () => {})
-        .with('wait', () => {
-          $fadeStatus.set(false)
-        })
-        .with('closed', () => {
+        .with(P.union('wait', 'closed'), () => {
+          if (!this.isVideo) {
+            this.actionContext.navigate('/black')
+          }
+
           $fadeStatus.set(false)
         })
         .with('active', () => {

@@ -286,7 +286,7 @@ export async function runOfflineAutomationAction(
 
       setTimeout(() => {
         $fadeStatus.set(false)
-      }, 500)
+      }, 1000)
     })
     .exhaustive()
 }
