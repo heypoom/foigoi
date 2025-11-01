@@ -1,29 +1,31 @@
-[tool.poetry]
+[project]
 name = "api"
 version = "0.1.0"
 description = ""
-authors = ["Phoomparin Mano <phoomparin@gmail.com>"]
+authors = [{ name = "Phoomparin Mano", email = "phoomparin@gmail.com" }]
+requires-python = "~=3.11"
 readme = "README.md"
-package-mode = false
+dependencies = [
+    "fastapi>=0.109.1,<0.110",
+    "uvicorn[standard]>=0.29.0,<0.30",
+    "diffusers[torch]>=0.27.2,<0.28",
+    "torch>=2.2.2,<3",
+    "jupyter>=1.0.0,<2",
+    "matplotlib>=3.8.3,<4",
+    "datasets>=2.18.0,<3",
+    "torchvision>=0.17.2,<0.18",
+    "pillow>=10.3.0,<11",
+    "accelerate>=0.28.0,<0.29",
+    "transformers>=4.39.3,<5",
+    "bentoml>=1.2.10,<2",
+    "opencv-python>=4.9.0.80,<5",
+    "peft>=0.10.0,<0.11",
+    "websockets~=12.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-fastapi = "^0.109.1"
-uvicorn = { extras = ["standard"], version = "^0.29.0" }
-diffusers = { extras = ["torch"], version = "^0.27.2" }
-torch = "^2.2.2"
-jupyter = "^1.0.0"
-matplotlib = "^3.8.3"
-datasets = "^2.18.0"
-torchvision = "^0.17.2"
-pillow = "^10.3.0"
-accelerate = "^0.28.0"
-transformers = "^4.39.3"
-bentoml = "^1.2.10"
-opencv-python = "^4.9.0.80"
-peft = "^0.10.0"
-websockets = "^12.0"
+[tool.uv]
+package = false
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
