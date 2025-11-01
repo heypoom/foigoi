@@ -2,3 +2,8 @@
 **/.DS_Store
 .idea
 *.pyc
+replicate
+requester
+serverless
+ui/foigoi
+ui/public/videos
