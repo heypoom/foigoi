@@ -106,7 +106,7 @@ export function SettingsRoute() {
     }
   }
 
-  async function browserCheck() {
+  async function installVoice() {
     const ok = await dictation.setupLocalSpeech();
 
     if (ok) {
@@ -129,10 +129,10 @@ export function SettingsRoute() {
         </button>
 
         <button
-          onClick={browserCheck}
+          onClick={installVoice}
           className="border border-gray-300 text-gray-300 px-3 py-2 text-xs"
         >
-          browser check
+          install speech
         </button>
 
         <button
