@@ -81,7 +81,8 @@ export class Dictation {
   start = async () => {
     if (this.listening && this.recognition) return;
 
-    await this.setupLocalSpeech();
+    const ok = await this.setupLocalSpeech();
+    if (!ok) return;
 
     this.restarting = false;
     this.restartWatchdog();
@@ -136,11 +137,10 @@ export class Dictation {
 
   onAudioStart() {
     $dictationState.set("listening");
+    console.log("listening");
   }
 
   async onResult(event: SpeechRecognitionEvent) {
-    console.log(`i hear`);
-
     const { results } = event;
     const latest = results.item(results.length - 1);
     const first = latest.item(0);
