@@ -1,12 +1,12 @@
 import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
 import { $exhibitionMode, $canPlay, $videoMode } from "../store/exhibition";
 import { automator } from "../utils/exhibition/exhibition-automator";
-import { createElement, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { resetAll } from "../utils/exhibition/reset";
 import { fullscreen } from "../utils/commands";
 import { $fadeStatus } from "../store/fader";
 import { socket } from "../manager/socket";
-import { dictation, Dictation } from "../dictation";
+import { dictation } from "../dictation";
 
 export const Route = createLazyFileRoute("/")({
   component: SettingsRoute,
@@ -20,46 +20,6 @@ export function SettingsRoute() {
     resetAll();
     $fadeStatus.set(false);
   }, []);
-
-  // exhibition mode - program
-  // function startExhibitionProgramLegacy() {
-  //   $exhibitionMode.set(true)
-
-  //   socket.clearDisconnectionTimer()
-  //   socket.reconnectSoon('program change - exhibition', 10)
-
-  //   $videoMode.set(false)
-  //   $canPlay.set(true)
-  //   automator.sync({force: true})
-  //   fullscreen()
-
-  //   go({to: '/zero'})
-  // }
-
-  // exhibition mode - video
-  function startExhibitionVideo() {
-    go({ to: "/video" });
-
-    $exhibitionMode.set(true);
-
-    socket.clearDisconnectionTimer();
-    socket.reconnectSoon("program change - video", 10);
-
-    $videoMode.set(true);
-    $canPlay.set(true);
-    automator.sync({ force: true });
-    fullscreen();
-  }
-  // exhibition mode - program video
-  function startExhibitionProgramVideo() {
-    go({ to: "/program-video" });
-
-    $exhibitionMode.set(true);
-    $videoMode.set(false);
-    $canPlay.set(true);
-    automator.sync({ force: true });
-    fullscreen();
-  }
 
   // performance lecture mode
   function startLiveLecture() {
@@ -77,34 +37,6 @@ export function SettingsRoute() {
     // NOTE: do not use fullscreen() here, as it will show "To exit full screen"
 
     go({ to: "/zero" });
-  }
-
-  // debug: start exhibition from a fake time
-  function setFakeTime() {
-    $canPlay.set(true);
-    const time = prompt("enter a test time in hh:mm:ss format");
-
-    if (time) {
-      setFakeExhibitionOpenTime(time);
-    }
-  }
-
-  function setFakeExhibitionOpenTime(time: string) {
-    resetAll();
-    automator.mockTime(time);
-
-    if ($videoMode.get()) {
-      setTimeout(() => {
-        go({ to: "/video" });
-
-        setTimeout(() => {
-          automator.sync();
-        }, 100);
-      }, 150);
-    } else {
-      go({ to: "/program-video" });
-      automator.sync({ force: true });
-    }
   }
 
   async function installSpeech() {
