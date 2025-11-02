@@ -37,7 +37,7 @@
     "simplex-noise": "^4.0.1",
     "ts-pattern": "^5.2.0"
   },
-  "packageManager": "pnpm@9.1.4",
+  "packageManager": "pnpm@10.20.0",
   "devDependencies": {
     "@biomejs/biome": "1.5.3",
     "@tanstack/router-devtools": "^1.26.1",

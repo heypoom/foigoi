@@ -1,23 +1,24 @@
-import {createLazyFileRoute, useNavigate} from '@tanstack/react-router'
-import {$exhibitionMode, $canPlay, $videoMode} from '../store/exhibition'
-import {automator} from '../utils/exhibition/exhibition-automator'
-import {useEffect} from 'react'
-import {resetAll} from '../utils/exhibition/reset'
-import {fullscreen} from '../utils/commands'
-import {$fadeStatus} from '../store/fader'
-import {socket} from '../manager/socket'
+import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
+import { $exhibitionMode, $canPlay, $videoMode } from "../store/exhibition";
+import { automator } from "../utils/exhibition/exhibition-automator";
+import { useEffect } from "react";
+import { resetAll } from "../utils/exhibition/reset";
+import { fullscreen } from "../utils/commands";
+import { $fadeStatus } from "../store/fader";
+import { socket } from "../manager/socket";
+import { dictation, Dictation } from "../dictation";
 
-export const Route = createLazyFileRoute('/')({
+export const Route = createLazyFileRoute("/")({
   component: SettingsRoute,
-})
+});
 
 export function SettingsRoute() {
-  const go = useNavigate()
+  const go = useNavigate();
 
   useEffect(() => {
-    resetAll()
-    $fadeStatus.set(false)
-  }, [])
+    resetAll();
+    $fadeStatus.set(false);
+  }, []);
 
   // exhibition mode - program
   // function startExhibitionProgramLegacy() {
@@ -36,72 +37,82 @@ export function SettingsRoute() {
 
   // exhibition mode - video
   function startExhibitionVideo() {
-    go({to: '/video'})
+    go({ to: "/video" });
 
-    $exhibitionMode.set(true)
+    $exhibitionMode.set(true);
 
-    socket.clearDisconnectionTimer()
-    socket.reconnectSoon('program change - video', 10)
+    socket.clearDisconnectionTimer();
+    socket.reconnectSoon("program change - video", 10);
 
-    $videoMode.set(true)
-    $canPlay.set(true)
-    automator.sync({force: true})
-    fullscreen()
+    $videoMode.set(true);
+    $canPlay.set(true);
+    automator.sync({ force: true });
+    fullscreen();
   }
   // exhibition mode - program video
   function startExhibitionProgramVideo() {
-    go({to: '/program-video'})
+    go({ to: "/program-video" });
 
-    $exhibitionMode.set(true)
-    $videoMode.set(false)
-    $canPlay.set(true)
-    automator.sync({force: true})
-    fullscreen()
+    $exhibitionMode.set(true);
+    $videoMode.set(false);
+    $canPlay.set(true);
+    automator.sync({ force: true });
+    fullscreen();
   }
 
   // performance lecture mode
   function startLiveLecture() {
-    $exhibitionMode.set(false)
-    $videoMode.set(false)
+    $exhibitionMode.set(false);
+    $videoMode.set(false);
 
-    socket.clearDisconnectionTimer()
-    socket.reconnectSoon('program change - lecture', 10)
+    socket.clearDisconnectionTimer();
+    socket.reconnectSoon("program change - lecture", 10);
 
-    resetAll()
+    resetAll();
 
-    $canPlay.set(true)
-    automator.stopClock()
+    $canPlay.set(true);
+    automator.stopClock();
 
     // NOTE: do not use fullscreen() here, as it will show "To exit full screen"
 
-    go({to: '/zero'})
+    go({ to: "/zero" });
   }
 
   // debug: start exhibition from a fake time
   function setFakeTime() {
-    $canPlay.set(true)
-    const time = prompt('enter a test time in hh:mm:ss format')
+    $canPlay.set(true);
+    const time = prompt("enter a test time in hh:mm:ss format");
 
     if (time) {
-      setFakeExhibitionOpenTime(time)
+      setFakeExhibitionOpenTime(time);
     }
   }
 
   function setFakeExhibitionOpenTime(time: string) {
-    resetAll()
-    automator.mockTime(time)
+    resetAll();
+    automator.mockTime(time);
 
     if ($videoMode.get()) {
       setTimeout(() => {
-        go({to: '/video'})
+        go({ to: "/video" });
 
         setTimeout(() => {
-          automator.sync()
-        }, 100)
-      }, 150)
+          automator.sync();
+        }, 100);
+      }, 150);
     } else {
-      go({to: '/program-video'})
-      automator.sync({force: true})
+      go({ to: "/program-video" });
+      automator.sync({ force: true });
+    }
+  }
+
+  async function browserCheck() {
+    const ok = await dictation.setupLocalSpeech();
+
+    if (ok) {
+      alert("✅ local speech processing is good to go");
+    } else {
+      alert("🚨 this is bad, your local speech processing is not working");
     }
   }
 
@@ -111,69 +122,30 @@ export function SettingsRoute() {
 
       <div className="flex flex-col sm:flex-row gap-x-4 gap-y-4">
         <button
-          onClick={startExhibitionVideo}
-          className="border border-yellow-300 text-yellow-300 px-4 py-2"
+          onClick={startLiveLecture}
+          className="border border-yellow-300 text-yellow-300 px-3 py-2 text-xs"
         >
-          video screen
+          start live lecture
         </button>
 
         <button
-          onClick={startExhibitionProgramVideo}
-          className="border border-green-300 text-green-300 px-4 py-2"
+          onClick={browserCheck}
+          className="border border-gray-300 text-gray-300 px-3 py-2 text-xs"
         >
-          program screen
+          browser check
+        </button>
+
+        <button
+          onClick={fullscreen}
+          className="border border-gray-300 text-gray-300 px-3 py-2 text-xs"
+        >
+          fullscreen
         </button>
       </div>
 
-      <h2 className="text-xl">testing options</h2>
-
       <div className="space-y-4">
-        <div className="flex justify-start items-center gap-x-4 text-xs">
-          <button
-            onClick={() => setFakeExhibitionOpenTime('10:59:55')}
-            className="border border-gray-300 text-gray-300 px-3 py-2 text-xs"
-          >
-            set time to 10:59:55
-          </button>
-
-          <div>simulate when the first screening round is opening</div>
-        </div>
-
-        <div className="flex justify-start items-center gap-x-4 text-xs">
-          <button
-            onClick={setFakeTime}
-            className="border border-gray-300 text-gray-300 px-3 py-2 text-xs"
-          >
-            set a fake time
-          </button>
-
-          <div>simulate a time of day for the exhibition</div>
-        </div>
-
-        <div className="flex justify-start items-center gap-x-4 text-xs">
-          <button
-            onClick={fullscreen}
-            className="border border-gray-300 text-gray-300 px-3 py-2 text-xs"
-          >
-            fullscreen
-          </button>
-
-          <div>set the page to full-screen</div>
-        </div>
-
-        <div className="flex justify-start items-center gap-x-4 text-xs text-black">
-          <button
-            onClick={startLiveLecture}
-            className="border border-black text-black px-3 py-2 text-xs"
-          >
-            start lecture
-          </button>
-
-          <div>do not click this unless instructed</div>
-        </div>
-
-        <div>version: December 1, 2024</div>
+        <div>version: November 2, 2025</div>
       </div>
     </div>
-  )
+  );
 }
