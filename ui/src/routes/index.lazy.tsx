@@ -1,7 +1,7 @@
 import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
 import { $exhibitionMode, $canPlay, $videoMode } from "../store/exhibition";
 import { automator } from "../utils/exhibition/exhibition-automator";
-import { useEffect } from "react";
+import { createElement, useEffect, useState } from "react";
 import { resetAll } from "../utils/exhibition/reset";
 import { fullscreen } from "../utils/commands";
 import { $fadeStatus } from "../store/fader";
@@ -14,6 +14,7 @@ export const Route = createLazyFileRoute("/")({
 
 export function SettingsRoute() {
   const go = useNavigate();
+  const [debugLog, setDebugLog] = useState("");
 
   useEffect(() => {
     resetAll();
@@ -106,7 +107,7 @@ export function SettingsRoute() {
     }
   }
 
-  async function installVoice() {
+  async function installSpeech() {
     const ok = await dictation.setupLocalSpeech();
 
     if (ok) {
@@ -114,6 +115,18 @@ export function SettingsRoute() {
     } else {
       alert("🚨 this is bad, your local speech processing is not working");
     }
+  }
+
+  async function testSpeech() {
+    const dx = new SpeechRecognition();
+    // @ts-expect-error -- ok
+    dx.processLocally = true;
+    dx.continuous = true;
+    dx.onresult = (e) => {
+      const r = e.results.item(e.resultIndex).item(0).transcript;
+      setDebugLog(r);
+    };
+    dx.start();
   }
 
   return (
@@ -129,10 +142,17 @@ export function SettingsRoute() {
         </button>
 
         <button
-          onClick={installVoice}
+          onClick={installSpeech}
           className="border border-gray-300 text-gray-300 px-3 py-2 text-xs"
         >
           install speech
+        </button>
+
+        <button
+          onClick={testSpeech}
+          className="border border-gray-300 text-gray-300 px-3 py-2 text-xs"
+        >
+          test speech
         </button>
 
         <button
@@ -145,6 +165,8 @@ export function SettingsRoute() {
 
       <div className="space-y-4">
         <div>version: November 2, 2025</div>
+
+        {debugLog && <div>voice test: {debugLog}</div>}
       </div>
     </div>
   );
