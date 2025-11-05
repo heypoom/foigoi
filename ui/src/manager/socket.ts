@@ -20,8 +20,8 @@ const generationTimeouts: Record<string, number> = {
   P4: 20 * 1000,
 };
 
-const EXHIBITION_ENDPOINT = "ws://121.37.180.139:8080/ws";
-const LIVE_LECTURE_ENDPOINT = "ws://121.37.180.139:8080/ws";
+const EXHIBITION_ENDPOINT = "wss://rui-an-api.vanguardgallery.com/ws";
+const LIVE_LECTURE_ENDPOINT = "wss://rui-an-api.vanguardgallery.com/ws";
 
 class SocketManager {
   sock: WebSocket;
