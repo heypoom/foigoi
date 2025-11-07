@@ -14,7 +14,7 @@ export const DictationCaption = () => {
     <div className="text-center max-w-[1200px] px-2">
       <div
         className={cn(
-          'inline break-words bg-black py-2 px-6 font-extralight',
+          'inline break-words bg-black/70 py-2 px-6 font-extralight',
           final && 'text-white',
           !final && 'text-gray-300',
           isExhibition && 'text-[28px] leading-[46px]',
