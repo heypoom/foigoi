@@ -15,7 +15,7 @@ Sentry.init({
   tracesSampleRate: 0.9, //  Capture 100% of the transactions
 
   // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
-  tracePropagationTargets: ['localhost', /^https:\/\/ruian-de-api\.poom\.dev/],
+  tracePropagationTargets: ['localhost', /^https:\/\/foigoi-api\.poom\.dev/],
 
   // Session Replay
   replaysSessionSampleRate: 0.2, // sample 80% of the sessions
