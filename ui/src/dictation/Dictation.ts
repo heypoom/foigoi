@@ -1,202 +1,202 @@
-import { $dictationState, $transcript } from "../store/dictation";
-import { $exhibitionMode } from "../store/exhibition";
+import {$dictationState, $transcript} from '../store/dictation'
+import {$exhibitionMode} from '../store/exhibition'
 
 import {
   generateFromPrompt,
   processInterimTranscript,
-} from "../utils/process-transcript";
+} from '../utils/process-transcript'
 
 const SpeechRecognition =
-  window.SpeechRecognition || window.webkitSpeechRecognition;
+  window.SpeechRecognition || window.webkitSpeechRecognition
 
 /** Forcibly restart the recognizer after N words */
-const FORCE_RESTART_BACKLOG_LIMIT = 20;
+const FORCE_RESTART_BACKLOG_LIMIT = 20
 
 /** Delay for N milliseconds before starting recognizer again */
-const DELAY_BEFORE_START = 10;
+const DELAY_BEFORE_START = 10
 
 /** Wait for N milliseconds of total silence before restarting */
-const WATCHDOG_TIMEOUT = 1000 * 7;
+const WATCHDOG_TIMEOUT = 1000 * 7
 
 export class Dictation {
   // Dictation Watchdog Timer
-  silenceWatchdog = 0;
-  restarting = false;
+  silenceWatchdog = 0
+  restarting = false
 
   get listening() {
-    return $dictationState.get() === "listening";
+    return $dictationState.get() === 'listening'
   }
 
-  private recognition: SpeechRecognition | null = null;
+  private recognition: SpeechRecognition | null = null
 
   restartWatchdog() {
     if (this.silenceWatchdog) {
-      window.clearTimeout(this.silenceWatchdog);
+      window.clearTimeout(this.silenceWatchdog)
     }
 
     // It's too quiet. Restart the recognition.
     this.silenceWatchdog = window.setTimeout(() => {
       // alternative logic: check if path is not ROOT
       if (!this.recognition) {
-        console.log("[speech] recognition gone - not restarting watchdog.");
-        return;
+        console.log('[speech] recognition gone - not restarting watchdog.')
+        return
       }
 
-      this.restart("watchdog");
-    }, WATCHDOG_TIMEOUT);
+      this.restart('watchdog')
+    }, WATCHDOG_TIMEOUT)
   }
 
   async setupLocalSpeech() {
     try {
       // @ts-expect-error
       const checkStatus = await SpeechRecognition.available({
-        langs: ["en-SG"],
+        langs: ['en-SG'],
         processLocally: true,
-      });
+      })
 
-      if (checkStatus === "available") {
-        return true;
+      if (checkStatus === 'available') {
+        return true
       }
 
-      console.log(`SpeechRecognition.available status: "${checkStatus}"`);
+      console.log(`SpeechRecognition.available status: "${checkStatus}"`)
 
-      if (checkStatus === "unavailable") {
-        return false;
+      if (checkStatus === 'unavailable') {
+        return false
       }
 
       // @ts-expect-error
       const installStatus = await SpeechRecognition.install({
-        langs: ["en-SG"],
+        langs: ['en-SG'],
         processLocally: true,
-      });
+      })
 
-      console.log(`SpeechRecognition.install status: "${installStatus}"`);
+      console.log(`SpeechRecognition.install status: "${installStatus}"`)
 
-      return installStatus;
+      return installStatus
     } catch (error) {
-      return false;
+      return false
     }
   }
 
   start = async () => {
-    if (this.listening && this.recognition) return;
+    if (this.listening && this.recognition) return
 
-    const ok = await this.setupLocalSpeech();
-    if (!ok) return;
+    const ok = await this.setupLocalSpeech()
+    if (!ok) return
 
-    this.restarting = false;
-    this.restartWatchdog();
+    this.restarting = false
+    this.restartWatchdog()
 
-    $dictationState.set("starting");
+    $dictationState.set('starting')
 
-    this.recognition = new SpeechRecognition();
+    this.recognition = new SpeechRecognition()
     // @ts-expect-error -- it is valid
-    this.recognition.processLocally = true;
-    this.recognition.continuous = true;
-    this.recognition.interimResults = true;
-    this.recognition.lang = "en-SG";
+    this.recognition.processLocally = true
+    this.recognition.continuous = true
+    this.recognition.interimResults = true
+    this.recognition.lang = 'en-SG'
 
     this.recognition.addEventListener(
-      "audiostart",
-      this.onAudioStart.bind(this),
-    );
+      'audiostart',
+      this.onAudioStart.bind(this)
+    )
 
-    this.recognition.addEventListener("result", this.onResult.bind(this));
-    this.recognition.addEventListener("error", this.onError.bind(this));
-    this.recognition.addEventListener("end", this.onEnd.bind(this));
+    this.recognition.addEventListener('result', this.onResult.bind(this))
+    this.recognition.addEventListener('error', this.onError.bind(this))
+    this.recognition.addEventListener('end', this.onEnd.bind(this))
 
-    this.recognition.start();
-  };
+    this.recognition.start()
+  }
 
   restart(reason: string) {
     // do not listen in exhibition mode
-    if ($exhibitionMode.get()) return;
+    if ($exhibitionMode.get()) return
 
     if (this.restarting) {
-      return;
+      return
     }
 
     if (reason) {
-      console.log(`[speech] restarting due to "${reason}"`);
+      console.log(`[speech] restarting due to "${reason}"`)
     }
 
-    this.restarting = true;
+    this.restarting = true
 
-    clearTimeout(this.silenceWatchdog);
+    clearTimeout(this.silenceWatchdog)
 
     if (this.listening) {
-      this.stop();
+      this.stop()
 
       setTimeout(() => {
-        this.start();
-      }, DELAY_BEFORE_START);
+        this.start()
+      }, DELAY_BEFORE_START)
     } else {
-      this.start();
+      this.start()
     }
   }
 
   onAudioStart() {
-    $dictationState.set("listening");
-    console.log("listening");
+    $dictationState.set('listening')
+    console.log('listening')
   }
 
   async onResult(event: SpeechRecognitionEvent) {
-    const { results } = event;
-    const latest = results.item(results.length - 1);
-    const first = latest.item(0);
+    const {results} = event
+    const latest = results.item(results.length - 1)
+    const first = latest.item(0)
 
-    this.restartWatchdog();
+    this.restartWatchdog()
 
     if (latest.isFinal) {
-      await generateFromPrompt(first.transcript);
-      return;
+      await generateFromPrompt(first.transcript)
+      return
     }
 
-    await this.processInterimTranscript(results);
+    await this.processInterimTranscript(results)
   }
 
   async processInterimTranscript(list: SpeechRecognitionResultList) {
     const results = [...list].map((r) => ({
       transcript: r.item(0).transcript,
       isFinal: r.isFinal,
-    }));
+    }))
 
-    const { transcript, backlogLength } = processInterimTranscript(results);
+    const {transcript, backlogLength} = processInterimTranscript(results)
 
-    $transcript.set({ transcript, final: false });
+    $transcript.set({transcript, final: false})
 
     if (backlogLength > FORCE_RESTART_BACKLOG_LIMIT) {
-      this.restart("too many backlogs");
+      this.restart('too many backlogs')
     }
   }
 
   onError(event: SpeechRecognitionErrorEvent) {
     // restart the recognition if speech is not detected
-    if (event.error === "no-speech") {
-      this.restart("error of no-speech");
+    if (event.error === 'no-speech') {
+      this.restart('error of no-speech')
 
-      return;
+      return
     }
 
-    $dictationState.set("failed");
+    $dictationState.set('failed')
 
-    if (event.error === "aborted") {
-      this.restart("error of aborted");
+    if (event.error === 'aborted') {
+      this.restart('error of aborted')
 
-      return;
+      return
     }
   }
 
   onEnd() {
-    console.log("[speech] recognition end");
+    console.log('[speech] recognition end')
   }
 
   stop = () => {
-    $dictationState.set("stopped");
-    this.recognition?.stop();
-    this.recognition = null;
-  };
+    $dictationState.set('stopped')
+    this.recognition?.stop()
+    this.recognition = null
+  }
 }
 
 // Dictation singleton.
-export const dictation = new Dictation();
+export const dictation = new Dictation()
