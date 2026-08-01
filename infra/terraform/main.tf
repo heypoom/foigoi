@@ -105,6 +105,23 @@ resource "google_compute_firewall" "deny_ssh" {
   source_ranges = ["0.0.0.0/0"]
 }
 
+resource "google_compute_firewall" "allow_iap_ssh" {
+  count = var.create_runtime_resources ? 1 : 0
+
+  name        = "foigoi-allow-iap-ssh"
+  network     = "default"
+  priority    = 900
+  direction   = "INGRESS"
+  target_tags = ["foigoi-api"]
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = ["35.235.240.0/20"]
+}
+
 resource "google_compute_instance" "api" {
   count = var.create_gpu_instance && var.create_runtime_resources ? 1 : 0
 
