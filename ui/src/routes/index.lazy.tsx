@@ -1,39 +1,39 @@
-import {createLazyFileRoute, useNavigate} from '@tanstack/react-router'
-import {$exhibitionMode, $canPlay, $videoMode} from '../store/exhibition'
-import {automator} from '../utils/exhibition/exhibition-automator'
-import {useEffect} from 'react'
-import {resetAll} from '../utils/exhibition/reset'
-import {fullscreen} from '../utils/commands'
-import {$fadeStatus} from '../store/fader'
-import {socket} from '../manager/socket'
+import { createLazyFileRoute, useNavigate } from "@tanstack/react-router";
+import { $exhibitionMode, $canPlay, $videoMode } from "../store/exhibition";
+import { automator } from "../utils/exhibition/exhibition-automator";
+import { useEffect } from "react";
+import { resetAll } from "../utils/exhibition/reset";
+import { fullscreen } from "../utils/commands";
+import { $fadeStatus } from "../store/fader";
+import { socket } from "../manager/socket";
 
-export const Route = createLazyFileRoute('/')({
+export const Route = createLazyFileRoute("/")({
   component: SettingsRoute,
-})
+});
 
 export function SettingsRoute() {
-  const go = useNavigate()
+  const go = useNavigate();
   useEffect(() => {
-    resetAll()
-    $fadeStatus.set(false)
-  }, [])
+    resetAll();
+    $fadeStatus.set(false);
+  }, []);
 
   // performance lecture mode
   function startLiveLecture() {
-    $exhibitionMode.set(false)
-    $videoMode.set(false)
+    $exhibitionMode.set(false);
+    $videoMode.set(false);
 
-    socket.clearDisconnectionTimer()
-    socket.reconnectSoon('program change - lecture', 10)
+    socket.clearDisconnectionTimer();
+    socket.reconnectSoon("program change - lecture", 10);
 
-    resetAll()
+    resetAll();
 
-    $canPlay.set(true)
-    automator.stopClock()
+    $canPlay.set(true);
+    automator.stopClock();
 
     // NOTE: do not use fullscreen() here, as it will show "To exit full screen"
 
-    go({to: '/zero'})
+    go({ to: "/zero" });
   }
 
   return (
@@ -57,8 +57,8 @@ export function SettingsRoute() {
       </div>
 
       <div className="space-y-4">
-        <div>version: November 2, 2025</div>
+        <div>version: August 2, 2026</div>
       </div>
     </div>
-  )
+  );
 }
