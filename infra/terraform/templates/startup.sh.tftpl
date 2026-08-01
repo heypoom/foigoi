@@ -23,7 +23,16 @@ systemctl restart docker
 
 until nvidia-smi -L | grep -c 'GPU ' | grep -qx 2; do sleep 5; done
 mkdir -p /var/lib/foigoi/models /opt/foigoi
-mount /dev/disk/by-id/google-foigoi-model-cache /var/lib/foigoi/models || true
+cache_device=/dev/disk/by-id/google-foigoi-model-cache
+until [ -e "$cache_device" ]; do sleep 1; done
+if ! blkid "$cache_device" >/dev/null; then
+  mkfs.ext4 -F "$cache_device"
+fi
+cache_uuid=$(blkid -s UUID -o value "$cache_device")
+if ! grep -q "UUID=$cache_uuid" /etc/fstab; then
+  echo "UUID=$cache_uuid /var/lib/foigoi/models ext4 defaults,nofail 0 2" >> /etc/fstab
+fi
+mount /var/lib/foigoi/models
 gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
 cat > /opt/foigoi/.env <<EOF
 FOIGOI_API_IMAGE=${api_image}
