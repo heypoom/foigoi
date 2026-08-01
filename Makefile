@@ -51,7 +51,7 @@ infra-schedule: infra-init
 		echo "The August 2026 performance schedule is already active: $$active_execution" >&2; \
 		exit 1; \
 	fi; \
-	gcloud workflows run foigoi-performance-august-2026 --project $(PROJECT_ID) --location $(REGION)
+	gcloud workflows run foigoi-performance-august-2026 --project $(PROJECT_ID) --location $(REGION) --async
 
 infra-validate:
 	terraform -chdir=infra/bootstrap init -backend=false
