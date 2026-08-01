@@ -13,6 +13,8 @@ from programs.p3 import infer_program_3
 from utils.ws import create_send, strip
 from utils.connection_state import handle_socket_connect, handle_socket_disconnect
 from utils.health import gpu_readiness
+from utils.pipelines import img2img, text2img
+from scripts.gpu_smoke import run_gpu_smoke
 
 app = FastAPI()
 
@@ -28,6 +30,11 @@ app.add_middleware(
 @app.get("/healthz")
 def healthz():
     return gpu_readiness()
+
+
+@app.post("/healthz/smoke")
+def healthz_smoke():
+    return run_gpu_smoke(text2img, img2img)
 
 
 @app.websocket("/ws")

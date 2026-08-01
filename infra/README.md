@@ -55,8 +55,10 @@ pipeline devices without generating an image:
 curl --fail https://foigoi-api.poom.dev/healthz
 ```
 
-Run the explicit GPU smoke check only when the service is idle. It performs one
-512x512, one-step image generation through each resident pipeline:
+Run the explicit GPU smoke check only when the service is idle. It reaches the
+already-running API process through IAP and performs one 512x512, one-step
+image generation through each resident pipeline. The smoke endpoint is not
+available through the public proxy:
 
 ```sh
 make infra-smoke

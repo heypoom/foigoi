@@ -38,7 +38,7 @@ infra-down: infra-init
 		-var="create_gpu_instance=false"
 
 infra-smoke:
-	gcloud compute ssh foigoi-api --project $(PROJECT_ID) --zone $(ZONE) --tunnel-through-iap --command='sudo docker exec foigoi-api-1 uv run python scripts/gpu_smoke.py'
+	gcloud compute ssh foigoi-api --project $(PROJECT_ID) --zone $(ZONE) --tunnel-through-iap --command='sudo docker exec foigoi-api-1 uv run python scripts/run_gpu_smoke.py'
 
 infra-validate:
 	terraform -chdir=infra/bootstrap init -backend=false

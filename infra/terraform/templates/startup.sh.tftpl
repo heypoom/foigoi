@@ -45,6 +45,9 @@ ${api_hostname} {
   header Access-Control-Allow-Methods "GET, POST, OPTIONS"
   header Access-Control-Allow-Headers "Content-Type"
 
+  @smoke path /healthz/smoke
+  respond @smoke 404
+
   @websocket path /ws*
   reverse_proxy @websocket api:8000
   reverse_proxy api:8000
