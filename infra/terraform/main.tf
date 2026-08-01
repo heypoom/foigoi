@@ -21,6 +21,7 @@ resource "google_project_service" "services" {
     "iam.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
+    "workflows.googleapis.com",
   ])
   project            = var.project_id
   service            = each.value
@@ -45,6 +46,47 @@ resource "google_compute_address" "api" {
 resource "google_service_account" "api" {
   account_id   = "foigoi-api"
   display_name = "Foigoi API VM"
+}
+
+resource "google_service_account" "performance_scheduler" {
+  account_id   = "foigoi-performance-scheduler"
+  display_name = "Foigoi August 2026 Performance Scheduler"
+}
+
+resource "google_project_iam_custom_role" "performance_scheduler" {
+  role_id     = "foigoiPerformanceScheduler"
+  title       = "Foigoi Performance Scheduler"
+  description = "Starts and stops Foigoi for the August 2026 performance schedule."
+  permissions = [
+    "compute.instances.start",
+    "compute.instances.stop",
+    "compute.zoneOperations.get",
+  ]
+}
+
+resource "google_project_iam_member" "performance_scheduler" {
+  project = var.project_id
+  role    = google_project_iam_custom_role.performance_scheduler.name
+  member  = "serviceAccount:${google_service_account.performance_scheduler.email}"
+}
+
+resource "google_workflows_workflow" "performance_schedule" {
+  depends_on = [
+    google_project_service.services,
+    google_project_iam_member.performance_scheduler,
+  ]
+
+  name                = "foigoi-performance-august-2026"
+  region              = var.region
+  description         = "One-off Foigoi GPU schedule for 3-5 August 2026."
+  service_account     = google_service_account.performance_scheduler.id
+  call_log_level      = "LOG_ERRORS_ONLY"
+  deletion_protection = false
+  source_contents = templatefile("${path.module}/templates/performance-schedule.yaml.tftpl", {
+    project_id    = var.project_id
+    zone          = var.zone
+    instance_name = "foigoi-api"
+  })
 }
 
 resource "google_project_iam_member" "logging" {

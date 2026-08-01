@@ -63,3 +63,25 @@ available through the public proxy:
 ```sh
 make infra-smoke
 ```
+
+## August 2026 performance schedule
+
+The one-off Google Cloud Workflow starts `foigoi-api` 15 minutes before each
+artist-provided window in `Asia/Bangkok`, then stops it at 23:59. It has no
+recurring trigger:
+
+| Date | Start | Stop |
+| --- | --- | --- |
+| Monday 3 August | 19:45 | 23:59 |
+| Tuesday 4 August | 09:45 | 23:59 |
+| Wednesday 5 August | 09:45 | 23:59 |
+
+Deploy the workflow using the current API image tag, then start exactly one
+execution:
+
+```sh
+make infra-up IMAGE_TAG=c68d3a1
+make infra-schedule
+```
+
+`make infra-schedule` refuses to create another execution while one is active.

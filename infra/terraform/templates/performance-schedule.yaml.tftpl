@@ -1,0 +1,64 @@
+main:
+  steps:
+    - wait_for_monday_start:
+        call: sys.sleep_until
+        args:
+          time: "2026-08-03T12:45:00Z"
+    - start_monday:
+        call: googleapis.compute.v1.instances.start
+        args:
+          project: "${project_id}"
+          zone: "${zone}"
+          instance: "${instance_name}"
+    - wait_for_monday_stop:
+        call: sys.sleep_until
+        args:
+          time: "2026-08-03T16:59:00Z"
+    - stop_monday:
+        call: googleapis.compute.v1.instances.stop
+        args:
+          project: "${project_id}"
+          zone: "${zone}"
+          instance: "${instance_name}"
+    - wait_for_tuesday_start:
+        call: sys.sleep_until
+        args:
+          time: "2026-08-04T02:45:00Z"
+    - start_tuesday:
+        call: googleapis.compute.v1.instances.start
+        args:
+          project: "${project_id}"
+          zone: "${zone}"
+          instance: "${instance_name}"
+    - wait_for_tuesday_stop:
+        call: sys.sleep_until
+        args:
+          time: "2026-08-04T16:59:00Z"
+    - stop_tuesday:
+        call: googleapis.compute.v1.instances.stop
+        args:
+          project: "${project_id}"
+          zone: "${zone}"
+          instance: "${instance_name}"
+    - wait_for_wednesday_start:
+        call: sys.sleep_until
+        args:
+          time: "2026-08-05T02:45:00Z"
+    - start_wednesday:
+        call: googleapis.compute.v1.instances.start
+        args:
+          project: "${project_id}"
+          zone: "${zone}"
+          instance: "${instance_name}"
+    - wait_for_wednesday_stop:
+        call: sys.sleep_until
+        args:
+          time: "2026-08-05T16:59:00Z"
+    - stop_wednesday:
+        call: googleapis.compute.v1.instances.stop
+        args:
+          project: "${project_id}"
+          zone: "${zone}"
+          instance: "${instance_name}"
+    - schedule_complete:
+        return: "August 2026 performance schedule complete"

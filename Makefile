@@ -3,7 +3,7 @@ REGION ?= asia-southeast1
 ZONE ?= asia-southeast1-b
 IMAGE_REPOSITORY := $(REGION)-docker.pkg.dev/$(PROJECT_ID)/foigoi/foigoi-api
 
-.PHONY: image-smoke infra-init infra-up infra-down infra-smoke infra-validate
+.PHONY: image-smoke infra-init infra-up infra-down infra-smoke infra-schedule infra-validate
 
 image-smoke:
 	FOIGOI_API_IMAGE=foigoi-api:test docker compose -f api/compose.yaml config
@@ -39,6 +39,15 @@ infra-down: infra-init
 
 infra-smoke:
 	gcloud compute ssh foigoi-api --project $(PROJECT_ID) --zone $(ZONE) --tunnel-through-iap --command='sudo docker exec foigoi-api-1 uv run python scripts/run_gpu_smoke.py'
+
+infra-schedule: infra-init
+	@set -eu; \
+	active_execution="$$(gcloud workflows executions list foigoi-performance-august-2026 --project $(PROJECT_ID) --location $(REGION) --filter='state=ACTIVE' --format='value(name)' --limit=1)"; \
+	if [ -n "$$active_execution" ]; then \
+		echo "The August 2026 performance schedule is already active: $$active_execution" >&2; \
+		exit 1; \
+	fi; \
+	gcloud workflows run foigoi-performance-august-2026 --project $(PROJECT_ID) --location $(REGION)
 
 infra-validate:
 	terraform -chdir=infra/bootstrap init -backend=false
