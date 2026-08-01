@@ -21,7 +21,7 @@ cluster, or public SSH access.
 
 | Setting            | Value                         |
 | ------------------ | ----------------------------- |
-| Project            | `foigoi`                      |
+| Project            | `rui-an`                      |
 | Region             | `asia-southeast1` (Singapore) |
 | Zone               | `asia-southeast1-b`           |
 | Machine type       | `g2-standard-24`              |
@@ -30,9 +30,9 @@ cluster, or public SSH access.
 | Hostname           | `foigoi-api.poom.dev`         |
 
 Jakarta does not currently offer G2, so the deployment uses Singapore. The
-operator authenticates to GCP as `poom@poom.dev` through Application Default
-Credentials; credentials are never stored in this repository or Terraform
-state.
+operator authenticates to GCP as `poom@poom.dev` with `gcloud auth login`; the
+Make targets pass a short-lived access token to Terraform. Credentials are
+never stored in this repository or Terraform state.
 
 ## Infrastructure layout
 
@@ -45,13 +45,13 @@ bucket as its remote state backend and creates:
 - a `pd-ssd` model-cache disk mounted at `/var/lib/foigoi/models`;
 - a dedicated VM service account with only logging and monitoring writer
   permissions;
-- firewall rules that permit TCP 443 from the internet and deny public SSH;
+- firewall rules that permit TCP 80 and 443 from the internet and deny public SSH;
 - the Artifact Registry repository that stores the API image.
 
-The VM uses an L4-compatible NVIDIA driver and container runtime. A systemd
-unit starts the application Compose stack only after the GPU runtime is ready.
-Caddy terminates TLS for `foigoi-api.poom.dev` and proxies WebSockets to the
-API container.
+The VM uses an L4-compatible NVIDIA driver and container runtime. Its startup
+script starts the application Compose stack only after the GPU runtime is ready.
+Caddy terminates TLS for `foigoi-api.poom.dev` and proxies WebSockets to the API
+container.
 
 The DNS A record is configured by the operator to point at Terraform's static
 IP output before Caddy can obtain a certificate.

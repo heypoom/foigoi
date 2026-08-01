@@ -10,7 +10,7 @@
 
 ## Global Constraints
 
-- Use GCP project `foigoi`, region `asia-southeast1`, zone `asia-southeast1-b`, and machine type `g2-standard-24`.
+- Use GCP project `rui-an`, region `asia-southeast1`, zone `asia-southeast1-b`, and machine type `g2-standard-24`.
 - Use a standard VM; do not use Spot or expose TCP 22 publicly.
 - Serve HTTPS and WebSockets at `foigoi-api.poom.dev`.
 - Use `pd-ssd` for `/var/lib/foigoi/models`; do not use `pd-standard`.
@@ -139,7 +139,7 @@ git commit -m "feat: assign diffusion pipelines to separate GPUs"
 - Modify: `api/uv.lock`
 
 **Interfaces:**
-- Consumes: image tag `asia-southeast1-docker.pkg.dev/foigoi/foigoi/foigoi-api:<git-sha>`.
+- Consumes: image tag `asia-southeast1-docker.pkg.dev/rui-an/foigoi/foigoi-api:<git-sha>`.
 - Consumes: host model-cache mount `/var/lib/foigoi/models`.
 - Produces: Caddy listener on TCP 443 forwarding `/` and `/ws` to API port 8000.
 
@@ -205,7 +205,7 @@ git commit -m "feat: package GPU inference API for deployment"
 - Modify: `.gitignore`
 
 **Interfaces:**
-- Consumes: `project_id=foigoi`, `region=asia-southeast1`, `zone=asia-southeast1-b`, and immutable API image tag.
+- Consumes: `project_id=rui-an`, `region=asia-southeast1`, `zone=asia-southeast1-b`, and immutable API image tag.
 - Produces: static external IP, `api_url`, and the Artifact Registry repository URL.
 - Runtime Terraform state is supplied by `terraform init -backend-config="bucket=<bootstrap output>"`.
 
@@ -314,7 +314,7 @@ Expected: FAIL before the targets are added.
 
 `infra-init` runs bootstrap init/apply, reads `state_bucket_name`, and initializes
 the runtime backend. `infra-up` requires `IMAGE_TAG`, builds and pushes
-`asia-southeast1-docker.pkg.dev/foigoi/foigoi/foigoi-api:${IMAGE_TAG}`, then
+`asia-southeast1-docker.pkg.dev/rui-an/foigoi/foigoi-api:${IMAGE_TAG}`, then
 applies runtime Terraform with that image reference. `infra-down` destroys only
 the runtime module; it never calls destroy in `infra/bootstrap`.
 

@@ -1,5 +1,9 @@
 .DS_Store
 .worktrees/
+.terraform/
+*.tfstate
+*.tfstate.*
+infra/terraform/backend.hcl
 **/.DS_Store
 .idea
 *.pyc
