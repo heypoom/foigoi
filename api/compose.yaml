@@ -1,0 +1,35 @@
+services:
+  api:
+    image: ${FOIGOI_API_IMAGE:-asia-southeast1-docker.pkg.dev/foigoi/foigoi/foigoi-api:latest}
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+    gpus: all
+    expose:
+      - "8000"
+    volumes:
+      - /var/lib/foigoi/models:/var/lib/foigoi/models
+    healthcheck:
+      test: ["CMD", "uv", "run", "python", "-c", "import urllib.request; urllib.request.urlopen('http://api:8000/docs')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 2m
+
+  caddy:
+    image: caddy:2.8.4-alpine
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -1,24 +1,11 @@
-# Your domain or IP address
-rui-an-cn-api.poom.dev {
-	# Enable automatic HTTPS
+foigoi-api.poom.dev {
 	encode gzip
 
-	# Enable CORS
 	header Access-Control-Allow-Origin "*"
 	header Access-Control-Allow-Methods "GET, POST, OPTIONS"
 	header Access-Control-Allow-Headers "Content-Type"
 
-	# Reverse proxy for HTTP and WebSocket
-	reverse_proxy / {
-		to localhost:8000
-		header_up Host {host}
-		header_up X-Real-IP {remote}
-	}
-
-	# Handle WebSocket connections
-	reverse_proxy /ws {
-		to localhost:8000
-		header_up Host {host}
-		header_up X-Real-IP {remote}
-	}
+	@websocket path /ws*
+	reverse_proxy @websocket api:8000
+	reverse_proxy api:8000
 }
