@@ -12,7 +12,11 @@ image-smoke:
 infra-init:
 	@set -eu; \
 	access_token="$$(gcloud auth print-access-token)"; \
+	state_bucket="foigoi-tf-state-$$(gcloud projects describe $(PROJECT_ID) --format='value(projectNumber)')"; \
 	TF_VAR_access_token="$$access_token" terraform -chdir=infra/bootstrap init -backend=false; \
+	if ! TF_VAR_access_token="$$access_token" terraform -chdir=infra/bootstrap state show google_storage_bucket.terraform_state >/dev/null 2>&1 && gcloud storage buckets describe "gs://$$state_bucket" >/dev/null 2>&1; then \
+		TF_VAR_access_token="$$access_token" terraform -chdir=infra/bootstrap import google_storage_bucket.terraform_state "$$state_bucket"; \
+	fi; \
 	TF_VAR_access_token="$$access_token" terraform -chdir=infra/bootstrap apply -auto-approve; \
 	state_bucket="$$(TF_VAR_access_token="$$access_token" terraform -chdir=infra/bootstrap output -raw state_bucket_name)"; \
 	terraform -chdir=infra/terraform init -reconfigure \
