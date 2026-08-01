@@ -46,43 +46,8 @@ export class Dictation {
     }, WATCHDOG_TIMEOUT)
   }
 
-  async setupLocalSpeech() {
-    try {
-      // @ts-expect-error
-      const checkStatus = await SpeechRecognition.available({
-        langs: ['en-SG'],
-        processLocally: true,
-      })
-
-      if (checkStatus === 'available') {
-        return true
-      }
-
-      console.log(`SpeechRecognition.available status: "${checkStatus}"`)
-
-      if (checkStatus === 'unavailable') {
-        return false
-      }
-
-      // @ts-expect-error
-      const installStatus = await SpeechRecognition.install({
-        langs: ['en-SG'],
-        processLocally: true,
-      })
-
-      console.log(`SpeechRecognition.install status: "${installStatus}"`)
-
-      return installStatus
-    } catch (error) {
-      return false
-    }
-  }
-
-  start = async () => {
+  start = () => {
     if (this.listening && this.recognition) return
-
-    const ok = await this.setupLocalSpeech()
-    if (!ok) return
 
     this.restarting = false
     this.restartWatchdog()
@@ -90,8 +55,6 @@ export class Dictation {
     $dictationState.set('starting')
 
     this.recognition = new SpeechRecognition()
-    // @ts-expect-error -- it is valid
-    this.recognition.processLocally = true
     this.recognition.continuous = true
     this.recognition.interimResults = true
     this.recognition.lang = 'en-SG'
@@ -137,10 +100,11 @@ export class Dictation {
 
   onAudioStart() {
     $dictationState.set('listening')
-    console.log('listening')
   }
 
   async onResult(event: SpeechRecognitionEvent) {
+    console.log(`i hear`)
+
     const {results} = event
     const latest = results.item(results.length - 1)
     const first = latest.item(0)
