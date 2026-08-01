@@ -1,8 +1,9 @@
 PROJECT_ID ?= rui-an
 REGION ?= asia-southeast1
+ZONE ?= asia-southeast1-b
 IMAGE_REPOSITORY := $(REGION)-docker.pkg.dev/$(PROJECT_ID)/foigoi/foigoi-api
 
-.PHONY: image-smoke infra-init infra-up infra-down infra-validate
+.PHONY: image-smoke infra-init infra-up infra-down infra-smoke infra-validate
 
 image-smoke:
 	FOIGOI_API_IMAGE=foigoi-api:test docker compose -f api/compose.yaml config
@@ -35,6 +36,9 @@ infra-down: infra-init
 	TF_VAR_access_token="$$access_token" terraform -chdir=infra/terraform apply -auto-approve \
 		-var="create_runtime_resources=false" \
 		-var="create_gpu_instance=false"
+
+infra-smoke:
+	gcloud compute ssh foigoi-api --project $(PROJECT_ID) --zone $(ZONE) --tunnel-through-iap --command='sudo docker exec foigoi-api-1 uv run python scripts/gpu_smoke.py'
 
 infra-validate:
 	terraform -chdir=infra/bootstrap init -backend=false

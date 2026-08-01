@@ -47,3 +47,17 @@ From the VM console, confirm `nvidia-smi -L` reports exactly two NVIDIA L4
 devices. Check the API startup logs for `text2img=cuda:0` and `img2img=cuda:1`.
 Then verify HTTPS, `wss://foigoi-api.poom.dev/ws`, and Jakarta WebSocket RTT
 and prompt-to-first-preview latency.
+
+The public readiness endpoint reports the visible CUDA devices and the assigned
+pipeline devices without generating an image:
+
+```sh
+curl --fail https://foigoi-api.poom.dev/healthz
+```
+
+Run the explicit GPU smoke check only when the service is idle. It performs one
+512x512, one-step image generation through each resident pipeline:
+
+```sh
+make infra-smoke
+```

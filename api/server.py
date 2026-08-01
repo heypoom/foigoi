@@ -12,6 +12,7 @@ from programs.p2 import infer_program_2, infer_program_2_b
 from programs.p3 import infer_program_3
 from utils.ws import create_send, strip
 from utils.connection_state import handle_socket_connect, handle_socket_disconnect
+from utils.health import gpu_readiness
 
 app = FastAPI()
 
@@ -22,6 +23,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/healthz")
+def healthz():
+    return gpu_readiness()
 
 
 @app.websocket("/ws")
