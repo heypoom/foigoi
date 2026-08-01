@@ -51,7 +51,12 @@ infra-schedule: infra-init
 		echo "The August 2026 performance schedule is already active: $$active_execution" >&2; \
 		exit 1; \
 	fi; \
-	gcloud workflows run foigoi-performance-august-2026 --project $(PROJECT_ID) --location $(REGION) --async
+	curl --fail --silent --show-error \
+		--request POST \
+		--header "Authorization: Bearer $$(gcloud auth print-access-token)" \
+		--header "Content-Type: application/json" \
+		--data '{}' \
+		"https://workflowexecutions.googleapis.com/v1/projects/$(PROJECT_ID)/locations/$(REGION)/workflows/foigoi-performance-august-2026/executions"
 
 infra-validate:
 	terraform -chdir=infra/bootstrap init -backend=false
