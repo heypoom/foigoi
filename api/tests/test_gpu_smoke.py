@@ -39,4 +39,5 @@ class GpuSmokeTest(unittest.TestCase):
         )
         self.assertEqual(text2img.calls[0]["num_inference_steps"], 1)
         self.assertEqual(img2img.calls[0]["num_inference_steps"], 1)
+        self.assertEqual(img2img.calls[0]["strength"], 1)
         self.assertIs(img2img.calls[0]["image"], text2img.result.images[0])

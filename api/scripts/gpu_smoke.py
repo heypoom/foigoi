@@ -17,7 +17,7 @@ def run_gpu_smoke(text2img, img2img) -> dict:
     img2img_result = img2img(
         prompt=SMOKE_PROMPT,
         image=text2img_image,
-        strength=0.5,
+        strength=1,
         num_inference_steps=1,
         guidance_scale=0,
     )
