@@ -20,6 +20,8 @@ August.
 
 | Local time (`Asia/Bangkok`) | Action |
 | --- | --- |
+| Sun 2 Aug 2026 10:00 | Start |
+| Sun 2 Aug 2026 23:59 | Stop |
 | Mon 3 Aug 2026 19:45 | Start |
 | Mon 3 Aug 2026 23:59 | Stop |
 | Tue 4 Aug 2026 09:45 | Start |
@@ -30,4 +32,3 @@ August.
 `make infra-schedule` starts the one workflow execution after Terraform has
 created it. It refuses to start a second execution while an existing one is
 active. The currently running VM is stopped after the execution is confirmed.
-

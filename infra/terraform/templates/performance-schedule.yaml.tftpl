@@ -1,5 +1,25 @@
 main:
   steps:
+    - wait_for_sunday_start:
+        call: sys.sleep_until
+        args:
+          time: "2026-08-02T03:00:00Z"
+    - start_sunday:
+        call: googleapis.compute.v1.instances.start
+        args:
+          project: "${project_id}"
+          zone: "${zone}"
+          instance: "${instance_name}"
+    - wait_for_sunday_stop:
+        call: sys.sleep_until
+        args:
+          time: "2026-08-02T16:59:00Z"
+    - stop_sunday:
+        call: googleapis.compute.v1.instances.stop
+        args:
+          project: "${project_id}"
+          zone: "${zone}"
+          instance: "${instance_name}"
     - wait_for_monday_start:
         call: sys.sleep_until
         args:
