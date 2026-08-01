@@ -1,6 +1,6 @@
 services:
   api:
-    image: ${FOIGOI_API_IMAGE:-asia-southeast1-docker.pkg.dev/foigoi/foigoi/foigoi-api:latest}
+    image: ${FOIGOI_API_IMAGE:?FOIGOI_API_IMAGE must reference an immutable image tag}
     platform: linux/amd64
     build:
       context: .
@@ -14,14 +14,14 @@ services:
       test: ["CMD", "uv", "run", "python", "-c", "import urllib.request; urllib.request.urlopen('http://api:8000/docs')"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 2m
+      retries: 6
+      start_period: 30m
 
   caddy:
     image: caddy:2.8.4-alpine
     depends_on:
       api:
-        condition: service_healthy
+        condition: service_started
     ports:
       - "80:80"
       - "443:443"

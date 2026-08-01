@@ -1,3 +1,3 @@
 image-smoke:
-	docker compose -f api/compose.yaml config
+	FOIGOI_API_IMAGE=foigoi-api:test docker compose -f api/compose.yaml config
 	docker build --file api/Dockerfile --tag foigoi-api:test api
