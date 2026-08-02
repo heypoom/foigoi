@@ -13,7 +13,8 @@ def load_chuamiatee_lora():
     print("loading LoRA weight")
 
     text2img.load_lora_weights(
-        "heypoom/chuamiatee-1", weight_name="pytorch_lora_weights.safetensors"
+        "/var/lib/foigoi/models/chuamiatee-1",
+        weight_name="pytorch_lora_weights.safetensors",
     )
 
     lora_applied = True
