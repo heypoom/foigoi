@@ -72,8 +72,6 @@ recurring trigger:
 
 | Date | Start | Stop |
 | --- | --- | --- |
-| Sunday 2 August | 10:00 | 23:59 |
-| Monday 3 August | 19:45 | 23:59 |
 | Tuesday 4 August | 09:45 | 23:59 |
 | Wednesday 5 August | 09:45 | 23:59 |
 

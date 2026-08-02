@@ -2,7 +2,7 @@
 
 ## Goal
 
-Run the Foigoi GPU VM only during the three artist-provided performance
+Run the Foigoi GPU VM only during the two remaining artist-provided performance
 windows, with a 15-minute startup buffer in Jakarta/Bangkok time.
 
 ## Design
@@ -20,10 +20,6 @@ August.
 
 | Local time (`Asia/Bangkok`) | Action |
 | --- | --- |
-| Sun 2 Aug 2026 10:00 | Start |
-| Sun 2 Aug 2026 23:59 | Stop |
-| Mon 3 Aug 2026 19:45 | Start |
-| Mon 3 Aug 2026 23:59 | Stop |
 | Tue 4 Aug 2026 09:45 | Start |
 | Tue 4 Aug 2026 23:59 | Stop |
 | Wed 5 Aug 2026 09:45 | Start |
