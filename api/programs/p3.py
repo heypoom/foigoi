@@ -7,6 +7,7 @@ from utils.pipelines import text2img
 # Program 3 pipeline: chua mia tee painting
 async def infer_program_3(prompt: str, strength: float, conn_id=None):
     width, height = get_chuamiatee_size()
+    prompt = f"{prompt}, chua mia tee painting"
 
     def pipeline(on_step_end):
         with torch.inference_mode():
