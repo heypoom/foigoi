@@ -11,7 +11,7 @@ output "api_url" {
 }
 
 output "artifact_repository" {
-  value = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.api.repository_id}"
+  value = "${var.artifact_registry_region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.api.repository_id}"
 }
 
 output "performance_schedule_workflow" {

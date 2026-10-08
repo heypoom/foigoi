@@ -64,23 +64,37 @@ available through the public proxy:
 make infra-smoke
 ```
 
-## August 2026 performance schedule
+## October 2026 Kyoto performance schedule
 
-The one-off Google Cloud Workflow starts `foigoi-api` 15 minutes before each
-artist-provided window in `Asia/Bangkok`, then stops it at 23:59. It has no
-recurring trigger:
+The one-off Google Cloud Workflow starts the VM 15 minutes before and stops it
+15 minutes after each artist-provided window in `Asia/Tokyo`. There is no recurring trigger.
 
-| Date | Start | Stop |
+| Date | Start (Tokyo) | Stop (Tokyo) |
 | --- | --- | --- |
-| Tuesday 4 August | 09:45 | 23:59 |
-| Wednesday 5 August | 09:45 | 23:59 |
+| October 8 | 17:45 | 22:15 |
+| October 9 | 11:45 | October 10 00:14 |
+| October 10 | 14:45 | October 11 00:14 |
+| October 11 | 14:45 | October 12 00:14 |
 
-Deploy the workflow using the current API image tag, then start exactly one
-execution:
+Run `make infra-up IMAGE_TAG=<immutable-tag>` to deploy, update the DNS A record
+with the emitted static IP, then run `make infra-schedule` exactly once.
+The schedule target refuses to create another execution while one is active.
+The VM runs immediately after provisioning so readiness can be verified before the show.
+Terraform uploads the local Chua Mia Tee LoRA from `../local_lora/` into a private
+GCS model-assets bucket. The startup script copies it onto the persistent model-cache
+disk before starting the API. Override `TF_VAR_chuamiatee_lora_path` if the file is elsewhere.
 
-```sh
-make infra-up IMAGE_TAG=c68d3a1
-make infra-schedule
-```
+The Terraform state bucket and GPU runtime use Singapore.
+Make targets pass REGION and ZONE to Terraform as well as gcloud.
 
-`make infra-schedule` refuses to create another execution while one is active.
+The GPU runtime currently uses Singapore because Tokyo's specific NVIDIA L4
+quota increase was denied. The API image repository remains in Tokyo;
+`ARTIFACT_REGION=asia-northeast1` is independent of the runtime `REGION` and `ZONE`.
+
+## Venue network diagnostic
+
+Open `https://foigoi-api.poom.dev/network-test` on the show device and connection.
+Run the test with the tab visible, then copy the diagnostic. It records 20 warmed
+HTTPS and WebSocket application round trips, median/p95 timing, failures, raw
+samples, browser details, and optional location/connection notes. The probes
+invoke no image generation. The page is available while the scheduled VM is on.

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Foigoi · Network test</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #10151c; color: #edf2f8; }
+    body { max-width: 760px; margin: 0 auto; padding: 40px 20px; }
+    h1 { font-size: 30px; margin-bottom: 8px; }
+    p { color: #b9c5d4; line-height: 1.6; }
+    label { display: block; margin: 26px 0 8px; }
+    input, textarea { box-sizing: border-box; width: 100%; background: #19222e; border: 1px solid #40516a; border-radius: 8px; color: inherit; padding: 12px; font: inherit; }
+    button { border: 0; border-radius: 8px; padding: 12px 18px; font: inherit; font-weight: 600; cursor: pointer; background: #a7e7ce; color: #10151c; margin: 18px 8px 0 0; }
+    button:disabled { opacity: .45; cursor: default; }
+    #status { min-height: 24px; color: #a7e7ce; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #304052; }
+    th { color: #b9c5d4; font-size: 13px; }
+    textarea { font-family: ui-monospace, monospace; font-size: 12px; min-height: 240px; }
+    small { color: #b9c5d4; }
+  </style>
+</head>
+<body>
+  <h1>Foigoi network test</h1>
+  <p>Measure round-trip delay from this browser to the show server over HTTPS and WebSocket. No image generation is involved.</p>
+  <p>Use the same device and network as the show. Keep this tab visible during the test, then copy the diagnostic and send it to Poom.</p>
+  <label for="notes">Location and connection (optional)</label>
+  <input id="notes" placeholder="Kyoto venue · laptop · venue Wi-Fi · no VPN" maxlength="500">
+  <button id="run">Run latency test</button>
+  <div id="status" role="status" aria-live="polite">Ready. Usually takes 10–20 seconds.</div>
+  <table aria-label="Latency results">
+    <thead><tr><th>Connection</th><th>Median</th><th>95th percentile</th><th>Failures</th></tr></thead>
+    <tbody id="results"><tr><td colspan="4">Run a test to see results.</td></tr></tbody>
+  </table>
+  <small>Times include the browser, network, proxy, and API response. These are application round trips, not ICMP ping or one-way latency. The test does not measure image transfer speed.</small>
+  <label for="diagnostic">Diagnostic to share</label>
+  <textarea id="diagnostic" readonly placeholder="Your diagnostic will appear here."></textarea>
+  <button id="copy" disabled>Copy diagnostic</button>
+  <small id="copy-status" role="status"></small>
+<script>
+const samplesPerTest = 20;
+const warmupCount = 2;
+const timeoutMs = 4000;
+const runButton = document.querySelector('#run');
+const copyButton = document.querySelector('#copy');
+const status = document.querySelector('#status');
+const diagnostic = document.querySelector('#diagnostic');
+const results = document.querySelector('#results');
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const round = value => Math.round(value * 100) / 100;
+const milliseconds = value => value === null ? '—' : `${value} ms`;
+
+function summarize(samples) {
+  if (!samples.length) return null;
+  const sorted = [...samples].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  const median = sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2;
+  const differences = samples.slice(1).map((value, index) => Math.abs(value - samples[index]));
+  return {
+    successful_samples: samples.length,
+    min_ms: round(sorted[0]),
+    median_ms: round(median),
+    mean_ms: round(samples.reduce((a, b) => a + b, 0) / samples.length),
+    p95_ms: round(sorted[Math.ceil(sorted.length * .95) - 1]),
+    max_ms: round(sorted[sorted.length - 1]),
+    mean_consecutive_difference_ms: differences.length ? round(differences.reduce((a, b) => a + b, 0) / differences.length) : null,
+  };
+}
+
+async function sample(probe, label) {
+  const measurements = [];
+  const errors = [];
+  let attempts = 0;
+  for (let i = 0; i < warmupCount; i++) await probe();
+  for (let i = 0; i < samplesPerTest; i++) {
+    status.textContent = `${label}: sample ${i + 1} of ${samplesPerTest}…`;
+    attempts++;
+    try {
+      measurements.push(round(await probe()));
+    } catch (error) {
+      errors.push(String(error.message || error));
+      if (errors.length >= 3) break;
+    }
+    await delay(100);
+  }
+  return { attempted_samples: attempts, failed_samples: errors.length, summary: summarize(measurements), samples_ms: measurements, errors };
+}
+
+function connectSocket(url) {
+  return new Promise((resolve, reject) => {
+    const socket = new WebSocket(url);
+    const timer = setTimeout(() => { socket.close(); reject(new Error('WebSocket connection timed out')); }, timeoutMs);
+    socket.onopen = () => { clearTimeout(timer); resolve(socket); };
+    socket.onerror = () => { clearTimeout(timer); socket.close(); reject(new Error('WebSocket connection failed')); };
+  });
+}
+
+function socketProbe(socket) {
+  let sequence = 0;
+  return () => new Promise((resolve, reject) => {
+    const message = String(++sequence);
+    const start = performance.now();
+    const cleanup = () => {
+      clearTimeout(timer);
+      socket.removeEventListener('message', receive);
+      socket.removeEventListener('close', closed);
+    };
+    const receive = event => {
+      if (event.data !== message) return;
+      cleanup();
+      resolve(performance.now() - start);
+    };
+    const closed = () => { cleanup(); reject(new Error('WebSocket closed')); };
+    const timer = setTimeout(() => { cleanup(); reject(new Error('WebSocket echo timed out')); }, timeoutMs);
+    socket.addEventListener('message', receive);
+    socket.addEventListener('close', closed);
+    if (socket.readyState !== WebSocket.OPEN) {
+      cleanup();
+      reject(new Error('WebSocket is not open'));
+      return;
+    }
+    socket.send(message);
+  });
+}
+
+runButton.onclick = async () => {
+  runButton.disabled = true;
+  copyButton.disabled = true;
+  document.querySelector('#copy-status').textContent = '';
+  results.replaceChildren();
+  let hiddenDuringTest = document.hidden;
+  const visibilityChanged = () => { if (document.hidden) hiddenDuringTest = true; };
+  document.addEventListener('visibilitychange', visibilityChanged);
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const report = {
+    version: 1,
+    started_at: new Date().toISOString(),
+    endpoint: location.origin,
+    notes: document.querySelector('#notes').value.trim(),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    user_agent: navigator.userAgent,
+    browser_reported_connection: connection ? { effective_type: connection.effectiveType, estimated_rtt_ms: connection.rtt, estimated_downlink_mbps: connection.downlink, save_data: connection.saveData } : null,
+    warmup_samples_excluded_per_test: warmupCount,
+    requested_samples_per_test: samplesPerTest,
+    timeout_ms: timeoutMs,
+    tests: {},
+  };
+  for (const [key, label] of [['https', 'HTTPS'], ['websocket', 'WebSocket']]) {
+    let socket;
+    try {
+      status.textContent = `Connecting ${label}…`;
+      let probe;
+      if (key === 'https') {
+        probe = async () => {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), timeoutMs);
+          const start = performance.now();
+          try {
+            const response = await fetch(`/network-test/ping?probe=${Date.now()}-${Math.random()}`, { cache: 'no-store', signal: controller.signal });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const body = await response.json();
+            if (body.ok !== true) throw new Error('Unexpected ping response');
+            return performance.now() - start;
+          } finally { clearTimeout(timer); }
+        };
+      } else {
+        const start = performance.now();
+        socket = await connectSocket(`${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/network-test/ws`);
+        report.websocket_connection_ms = round(performance.now() - start);
+        probe = socketProbe(socket);
+      }
+      report.tests[key] = await sample(probe, label);
+    } catch (error) {
+      report.tests[key] = { error: String(error.message || error), summary: null };
+    } finally { if (socket) socket.close(); }
+    const test = report.tests[key];
+    const row = document.createElement('tr');
+    for (const value of [label, milliseconds(test.summary?.median_ms ?? null), milliseconds(test.summary?.p95_ms ?? null), test.error ? 'Test failed' : `${test.failed_samples}/${test.attempted_samples}`]) {
+      const cell = document.createElement('td');
+      cell.textContent = value;
+      row.append(cell);
+    }
+    results.append(row);
+  }
+  report.finished_at = new Date().toISOString();
+  report.tab_hidden_during_test = hiddenDuringTest;
+  document.removeEventListener('visibilitychange', visibilityChanged);
+  diagnostic.value = JSON.stringify(report, null, 2);
+  copyButton.disabled = false;
+  runButton.disabled = false;
+  status.textContent = hiddenDuringTest ? 'Finished. The tab was hidden during the test; rerun with it visible for better results.' : 'Finished. Copy the diagnostic and send it to Poom.';
+};
+
+copyButton.onclick = async () => {
+  try {
+    await navigator.clipboard.writeText(diagnostic.value);
+    document.querySelector('#copy-status').textContent = 'Copied.';
+  } catch {
+    diagnostic.focus();
+    diagnostic.select();
+    document.querySelector('#copy-status').textContent = 'Text selected. Press Ctrl+C or ⌘C to copy.';
+  }
+};
+</script>
+</body>
+</html>

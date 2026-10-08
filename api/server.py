@@ -15,8 +15,10 @@ from utils.connection_state import handle_socket_connect, handle_socket_disconne
 from utils.health import gpu_readiness
 from utils.pipelines import img2img, text2img
 from scripts.gpu_smoke import run_gpu_smoke
+from network_test import router as network_test_router
 
 app = FastAPI()
+app.include_router(network_test_router)
 
 app.add_middleware(
     CORSMiddleware,

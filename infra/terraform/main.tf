@@ -21,6 +21,7 @@ resource "google_project_service" "services" {
     "iam.googleapis.com",
     "logging.googleapis.com",
     "monitoring.googleapis.com",
+    "storage.googleapis.com",
     "workflows.googleapis.com",
   ])
   project            = var.project_id
@@ -30,7 +31,7 @@ resource "google_project_service" "services" {
 
 resource "google_artifact_registry_repository" "api" {
   depends_on    = [google_project_service.services]
-  location      = var.region
+  location      = var.artifact_registry_region
   repository_id = "foigoi"
   format        = "DOCKER"
 }
@@ -50,13 +51,13 @@ resource "google_service_account" "api" {
 
 resource "google_service_account" "performance_scheduler" {
   account_id   = "foigoi-performance-scheduler"
-  display_name = "Foigoi August 2026 Performance Scheduler"
+  display_name = "Foigoi October 2026 Performance Scheduler"
 }
 
 resource "google_project_iam_custom_role" "performance_scheduler" {
   role_id     = "foigoiPerformanceScheduler"
   title       = "Foigoi Performance Scheduler"
-  description = "Starts and stops Foigoi for the August 2026 performance schedule."
+  description = "Starts and stops Foigoi for the October 2026 performance schedule."
   permissions = [
     "compute.instances.start",
     "compute.instances.stop",
@@ -76,9 +77,9 @@ resource "google_workflows_workflow" "performance_schedule" {
     google_project_iam_member.performance_scheduler,
   ]
 
-  name                = "foigoi-performance-august-2026"
+  name                = "foigoi-performance-october-2026"
   region              = var.region
-  description         = "One-off Foigoi GPU schedule for 4-5 August 2026."
+  description         = "One-off Foigoi GPU schedule for 8-11 October 2026."
   service_account     = google_service_account.performance_scheduler.id
   call_log_level      = "LOG_ERRORS_ONLY"
   deletion_protection = false
@@ -105,6 +106,28 @@ resource "google_project_iam_member" "artifact_reader" {
   project = var.project_id
   role    = "roles/artifactregistry.reader"
   member  = "serviceAccount:${google_service_account.api.email}"
+}
+
+resource "google_storage_bucket" "model_assets" {
+  depends_on = [google_project_service.services]
+
+  name                        = "foigoi-model-assets-${var.project_id}"
+  location                    = "asia-southeast1"
+  uniform_bucket_level_access = true
+  force_destroy               = false
+}
+
+resource "google_storage_bucket_object" "chuamiatee_lora" {
+  name           = "chuamiatee-1/pytorch_lora_weights.safetensors"
+  bucket         = google_storage_bucket.model_assets.name
+  source         = var.chuamiatee_lora_path
+  source_md5hash = filemd5(var.chuamiatee_lora_path)
+}
+
+resource "google_storage_bucket_iam_member" "model_reader" {
+  bucket = google_storage_bucket.model_assets.name
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:${google_service_account.api.email}"
 }
 
 resource "google_compute_disk" "model_cache" {
@@ -167,7 +190,7 @@ resource "google_compute_firewall" "allow_iap_ssh" {
 resource "google_compute_instance" "api" {
   count = var.create_gpu_instance && var.create_runtime_resources ? 1 : 0
 
-  depends_on   = [google_project_service.services]
+  depends_on   = [google_project_service.services, google_storage_bucket_object.chuamiatee_lora, google_storage_bucket_iam_member.model_reader]
   name         = "foigoi-api"
   machine_type = "g2-standard-24"
   zone         = var.zone
@@ -209,10 +232,14 @@ resource "google_compute_instance" "api" {
     on_host_maintenance = "TERMINATE"
   }
 
-  metadata_startup_script = templatefile("${path.module}/templates/startup.sh.tftpl", {
-    api_image    = var.api_image
-    api_hostname = var.api_hostname
-  })
+  metadata = {
+    startup-script = templatefile("${path.module}/templates/startup.sh.tftpl", {
+      api_image     = var.api_image
+      api_hostname  = var.api_hostname
+      registry_host = split("/", var.api_image)[0]
+      lora_uri      = "gs://${google_storage_bucket_object.chuamiatee_lora.bucket}/${google_storage_bucket_object.chuamiatee_lora.name}"
+    })
+  }
 
   lifecycle {
     precondition {

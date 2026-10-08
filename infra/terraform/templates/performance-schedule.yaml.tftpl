@@ -1,44 +1,84 @@
 main:
   steps:
-    - wait_for_tuesday_start:
+    - wait_for_october_8_start:
         call: sys.sleep_until
         args:
-          time: "2026-08-04T02:45:00Z"
-    - start_tuesday:
+          time: "2026-10-08T08:45:00Z"
+    - start_october_8:
         call: googleapis.compute.v1.instances.start
         args:
           project: "${project_id}"
           zone: "${zone}"
           instance: "${instance_name}"
-    - wait_for_tuesday_stop:
+    - wait_for_october_8_stop:
         call: sys.sleep_until
         args:
-          time: "2026-08-04T16:59:00Z"
-    - stop_tuesday:
+          time: "2026-10-08T13:15:00Z"
+    - stop_october_8:
         call: googleapis.compute.v1.instances.stop
         args:
           project: "${project_id}"
           zone: "${zone}"
           instance: "${instance_name}"
-    - wait_for_wednesday_start:
+    - wait_for_october_9_start:
         call: sys.sleep_until
         args:
-          time: "2026-08-05T02:45:00Z"
-    - start_wednesday:
+          time: "2026-10-09T02:45:00Z"
+    - start_october_9:
         call: googleapis.compute.v1.instances.start
         args:
           project: "${project_id}"
           zone: "${zone}"
           instance: "${instance_name}"
-    - wait_for_wednesday_stop:
+    - wait_for_october_9_stop:
         call: sys.sleep_until
         args:
-          time: "2026-08-05T16:59:00Z"
-    - stop_wednesday:
+          time: "2026-10-09T15:14:00Z"
+    - stop_october_9:
+        call: googleapis.compute.v1.instances.stop
+        args:
+          project: "${project_id}"
+          zone: "${zone}"
+          instance: "${instance_name}"
+    - wait_for_october_10_start:
+        call: sys.sleep_until
+        args:
+          time: "2026-10-10T05:45:00Z"
+    - start_october_10:
+        call: googleapis.compute.v1.instances.start
+        args:
+          project: "${project_id}"
+          zone: "${zone}"
+          instance: "${instance_name}"
+    - wait_for_october_10_stop:
+        call: sys.sleep_until
+        args:
+          time: "2026-10-10T15:14:00Z"
+    - stop_october_10:
+        call: googleapis.compute.v1.instances.stop
+        args:
+          project: "${project_id}"
+          zone: "${zone}"
+          instance: "${instance_name}"
+    - wait_for_october_11_start:
+        call: sys.sleep_until
+        args:
+          time: "2026-10-11T05:45:00Z"
+    - start_october_11:
+        call: googleapis.compute.v1.instances.start
+        args:
+          project: "${project_id}"
+          zone: "${zone}"
+          instance: "${instance_name}"
+    - wait_for_october_11_stop:
+        call: sys.sleep_until
+        args:
+          time: "2026-10-11T15:14:00Z"
+    - stop_october_11:
         call: googleapis.compute.v1.instances.stop
         args:
           project: "${project_id}"
           zone: "${zone}"
           instance: "${instance_name}"
     - schedule_complete:
-        return: "August 2026 performance schedule complete"
+        return: "October 2026 performance schedule complete"

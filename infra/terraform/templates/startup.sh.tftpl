@@ -32,8 +32,10 @@ cache_uuid=$(blkid -s UUID -o value "$cache_device")
 if ! grep -q "UUID=$cache_uuid" /etc/fstab; then
   echo "UUID=$cache_uuid /var/lib/foigoi/models ext4 defaults,nofail 0 2" >> /etc/fstab
 fi
-mount /var/lib/foigoi/models
-gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
+if ! mountpoint -q /var/lib/foigoi/models; then
+  mount /var/lib/foigoi/models
+fi
+gcloud auth configure-docker ${registry_host} --quiet
 cat > /opt/foigoi/.env <<EOF
 FOIGOI_API_IMAGE=${api_image}
 EOF
@@ -75,4 +77,8 @@ volumes:
   caddy_data:
   caddy_config:
 EOF
+echo "Staging Chua Mia Tee LoRA before starting the API"
+mkdir -p /var/lib/foigoi/models/chuamiatee-1
+gcloud storage cp ${lora_uri} /var/lib/foigoi/models/chuamiatee-1/pytorch_lora_weights.safetensors
+
 docker compose --env-file /opt/foigoi/.env -f /opt/foigoi/compose.yaml up -d

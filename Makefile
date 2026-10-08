@@ -1,7 +1,8 @@
 PROJECT_ID ?= rui-an
 REGION ?= asia-southeast1
 ZONE ?= asia-southeast1-b
-IMAGE_REPOSITORY := $(REGION)-docker.pkg.dev/$(PROJECT_ID)/foigoi/foigoi-api
+ARTIFACT_REGION ?= asia-southeast1
+IMAGE_REPOSITORY := $(ARTIFACT_REGION)-docker.pkg.dev/$(PROJECT_ID)/foigoi/foigoi-api
 
 .PHONY: image-smoke infra-init infra-up infra-down infra-smoke infra-schedule infra-validate
 
@@ -26,11 +27,14 @@ infra-init:
 
 infra-up: infra-init
 	@test -n "$(IMAGE_TAG)" || (echo "IMAGE_TAG is required (for example: IMAGE_TAG=$$(git rev-parse --short HEAD))" >&2; exit 1)
-	@gcloud auth configure-docker $(REGION)-docker.pkg.dev --quiet
+	@gcloud auth configure-docker $(ARTIFACT_REGION)-docker.pkg.dev --quiet
 	docker build --platform linux/amd64 --file api/Dockerfile --tag $(IMAGE_REPOSITORY):$(IMAGE_TAG) api
 	docker push $(IMAGE_REPOSITORY):$(IMAGE_TAG)
 	@access_token="$$(gcloud auth print-access-token)"; \
 	TF_VAR_access_token="$$access_token" terraform -chdir=infra/terraform apply -auto-approve \
+		-var="artifact_registry_region=$(ARTIFACT_REGION)" \
+		-var="region=$(REGION)" \
+		-var="zone=$(ZONE)" \
 		-var="api_image=$(IMAGE_REPOSITORY):$(IMAGE_TAG)" \
 		-var="create_runtime_resources=true" \
 		-var="create_gpu_instance=true"
@@ -38,6 +42,9 @@ infra-up: infra-init
 infra-down: infra-init
 	@access_token="$$(gcloud auth print-access-token)"; \
 	TF_VAR_access_token="$$access_token" terraform -chdir=infra/terraform apply -auto-approve \
+		-var="artifact_registry_region=$(ARTIFACT_REGION)" \
+		-var="region=$(REGION)" \
+		-var="zone=$(ZONE)" \
 		-var="create_runtime_resources=false" \
 		-var="create_gpu_instance=false"
 
@@ -46,9 +53,9 @@ infra-smoke:
 
 infra-schedule: infra-init
 	@set -eu; \
-	active_execution="$$(gcloud workflows executions list foigoi-performance-august-2026 --project $(PROJECT_ID) --location $(REGION) --filter='state=ACTIVE' --format='value(name)' --limit=1)"; \
+	active_execution="$$(gcloud workflows executions list foigoi-performance-october-2026 --project $(PROJECT_ID) --location $(REGION) --filter='state=ACTIVE' --format='value(name)' --limit=1)"; \
 	if [ -n "$$active_execution" ]; then \
-		echo "The August 2026 performance schedule is already active: $$active_execution" >&2; \
+		echo "The October 2026 performance schedule is already active: $$active_execution" >&2; \
 		exit 1; \
 	fi; \
 	curl --fail --silent --show-error \
@@ -56,7 +63,7 @@ infra-schedule: infra-init
 		--header "Authorization: Bearer $$(gcloud auth print-access-token)" \
 		--header "Content-Type: application/json" \
 		--data '{}' \
-		"https://workflowexecutions.googleapis.com/v1/projects/$(PROJECT_ID)/locations/$(REGION)/workflows/foigoi-performance-august-2026/executions"
+		"https://workflowexecutions.googleapis.com/v1/projects/$(PROJECT_ID)/locations/$(REGION)/workflows/foigoi-performance-october-2026/executions"
 
 infra-validate:
 	terraform -chdir=infra/bootstrap init -backend=false
