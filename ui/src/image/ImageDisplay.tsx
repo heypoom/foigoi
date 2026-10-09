@@ -12,7 +12,7 @@ export const ImageDisplay = () => {
   const visible = !!url
 
   return (
-    <div className="relative flex items-center justify-center h-screen w-full z-[1] bg-[#111]">
+    <div className="relative flex items-center justify-center h-screen w-full z-[1] bg-black">
       <img
         src={crossfading ? prevUrl : url}
         alt=""
