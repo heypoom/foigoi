@@ -11,6 +11,7 @@ export function ClosedScreen() {
   if (!isExhibition) return null
   if (status.type !== 'closed') return null
   if (mr({to: '/'})) return null
+  if (mr({to: '/transcript-tester'})) return null
 
   return (
     <div className="fixed z-[100] left-0 top-0 flex flex-col items-center justify-center w-full h-full font-mono min-h-screen bg-black text-white gap-y-8">

@@ -1,21 +1,17 @@
 import {createFileRoute} from '@tanstack/react-router'
 import {DictationCaption} from '../dictation'
-import {useEffect} from 'react'
-import {$transcript} from '../store/dictation'
 
 const TranscriptTester = () => {
-  useEffect(() => {
-    // simulate a really long lorem ipsum
-    const transcript =
-      'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur'
-
-    $transcript.set({transcript, final: true})
-  }, [])
-
   return (
-    <main>
+    <main className="min-h-screen bg-black">
+      <img
+        src="/caption-debug-background.png"
+        alt=""
+        className="fixed inset-0 h-screen w-full object-cover object-center"
+      />
+
       <div className="fixed font-mono w-full min-h-screen flex left-0 justify-center items-center pt-12 pointer-events-none z-[50]">
-        <DictationCaption />
+        <DictationCaption transcript="a big black fox jumps over the lazy dog in the river" />
       </div>
     </main>
   )
