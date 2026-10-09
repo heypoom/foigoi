@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import starlette.websockets
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, Response, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
 print("starting server")
@@ -13,6 +13,7 @@ from programs.p3 import infer_program_3
 from utils.ws import create_send, strip
 from utils.connection_state import handle_socket_connect, handle_socket_disconnect
 from utils.health import gpu_readiness
+from utils.lora import chuamiatee_readiness
 from utils.pipelines import img2img, text2img
 from scripts.gpu_smoke import run_gpu_smoke
 from network_test import router as network_test_router
@@ -30,8 +31,13 @@ app.add_middleware(
 
 
 @app.get("/healthz")
-def healthz():
-    return gpu_readiness()
+async def healthz(response: Response, debug: bool = False):
+    response.headers["Cache-Control"] = "no-store"
+    readiness = gpu_readiness()
+    if debug:
+        readiness["lora"] = chuamiatee_readiness()
+
+    return readiness
 
 
 @app.post("/healthz/smoke")
