@@ -1,84 +1,138 @@
 main:
   steps:
-    - wait_for_october_8_start:
-        call: sys.sleep_until
-        args:
-          time: "2026-10-08T08:45:00Z"
-    - start_october_8:
-        call: googleapis.compute.v1.instances.start
-        args:
-          project: "${project_id}"
-          zone: "${zone}"
-          instance: "${instance_name}"
-    - wait_for_october_8_stop:
-        call: sys.sleep_until
-        args:
-          time: "2026-10-08T13:15:00Z"
-    - stop_october_8:
-        call: googleapis.compute.v1.instances.stop
-        args:
-          project: "${project_id}"
-          zone: "${zone}"
-          instance: "${instance_name}"
-    - wait_for_october_9_start:
-        call: sys.sleep_until
-        args:
-          time: "2026-10-09T02:45:00Z"
-    - start_october_9:
-        call: googleapis.compute.v1.instances.start
-        args:
-          project: "${project_id}"
-          zone: "${zone}"
-          instance: "${instance_name}"
-    - wait_for_october_9_stop:
-        call: sys.sleep_until
-        args:
-          time: "2026-10-09T15:14:00Z"
-    - stop_october_9:
-        call: googleapis.compute.v1.instances.stop
-        args:
-          project: "${project_id}"
-          zone: "${zone}"
-          instance: "${instance_name}"
-    - wait_for_october_10_start:
-        call: sys.sleep_until
-        args:
-          time: "2026-10-10T05:45:00Z"
-    - start_october_10:
-        call: googleapis.compute.v1.instances.start
-        args:
-          project: "${project_id}"
-          zone: "${zone}"
-          instance: "${instance_name}"
-    - wait_for_october_10_stop:
-        call: sys.sleep_until
-        args:
-          time: "2026-10-10T15:14:00Z"
-    - stop_october_10:
-        call: googleapis.compute.v1.instances.stop
-        args:
-          project: "${project_id}"
-          zone: "${zone}"
-          instance: "${instance_name}"
-    - wait_for_october_11_start:
-        call: sys.sleep_until
-        args:
-          time: "2026-10-11T05:45:00Z"
-    - start_october_11:
-        call: googleapis.compute.v1.instances.start
-        args:
-          project: "${project_id}"
-          zone: "${zone}"
-          instance: "${instance_name}"
-    - wait_for_october_11_stop:
-        call: sys.sleep_until
-        args:
-          time: "2026-10-11T15:14:00Z"
-    - stop_october_11:
-        call: googleapis.compute.v1.instances.stop
-        args:
-          project: "${project_id}"
-          zone: "${zone}"
-          instance: "${instance_name}"
+    - initialize_results:
+        assign:
+          - failed_windows: []
+    - schedule:
+        for:
+          value: window
+          in:
+            - start: "2026-10-08T08:00:00Z"
+              stop: "2026-10-08T13:15:00Z"
+            - start: "2026-10-09T02:00:00Z"
+              stop: "2026-10-09T15:14:00Z"
+            - start: "2026-10-10T05:00:00Z"
+              stop: "2026-10-10T15:14:00Z"
+            - start: "2026-10-11T05:00:00Z"
+              stop: "2026-10-11T15:14:00Z"
+          steps:
+            - run_window:
+                try:
+                  call: run_performance_window
+                  args:
+                    start_time: $${window.start}
+                    stop_time: $${window.stop}
+                except:
+                  as: error
+                  steps:
+                    - record_window_failure:
+                        assign:
+                          - failed_window:
+                              start: $${window.start}
+                              stop: $${window.stop}
+                              error: $${error}
+                          - failed_windows: $${list.concat(failed_windows, failed_window)}
+                    - log_window_failure:
+                        call: log_best_effort
+                        args:
+                          data:
+                            message: "Performance window failed; continuing to the next session"
+                            window: $${window}
+                            error: $${error}
+    - check_failures:
+        switch:
+          - condition: $${len(failed_windows) > 0}
+            return:
+              status: "completed_with_errors"
+              failed_windows: $${failed_windows}
     - schedule_complete:
-        return: "October 2026 performance schedule complete"
+        return:
+          status: "completed"
+          failed_windows: []
+
+run_performance_window:
+  params: [start_time, stop_time]
+  steps:
+    - skip_finished_window:
+        switch:
+          - condition: $${sys.now() >= time.parse(stop_time)}
+            return: "Skipped finished window"
+    - wait_for_start:
+        call: sys.sleep_until
+        args:
+          time: $${start_time}
+    - check_start_deadline:
+        switch:
+          - condition: $${sys.now() >= time.parse(stop_time)}
+            next: stop_instance
+    - start_instance:
+        try:
+          call: googleapis.compute.v1.instances.start
+          args:
+            project: "${project_id}"
+            zone: "${zone}"
+            instance: "${instance_name}"
+        except:
+          as: error
+          steps:
+            - log_start_failure:
+                call: log_best_effort
+                args:
+                  data:
+                    message: "VM start failed; retrying within the performance window"
+                    stop_time: $${stop_time}
+                    error: $${error}
+            - wait_before_retry:
+                call: sys.sleep
+                args:
+                  seconds: $${math.max(0, math.min(60, time.parse(stop_time) - sys.now()))}
+            - retry_start:
+                next: check_start_deadline
+    - wait_for_stop:
+        call: sys.sleep_until
+        args:
+          time: $${stop_time}
+    - stop_instance:
+        try:
+          call: googleapis.compute.v1.instances.stop
+          args:
+            project: "${project_id}"
+            zone: "${zone}"
+            instance: "${instance_name}"
+        retry:
+          predicate: $${retry_stop}
+          max_retries: 10
+          backoff:
+            initial_delay: 10
+            max_delay: 60
+            multiplier: 2
+    - window_complete:
+        return: "Performance window complete"
+
+retry_stop:
+  params: [error]
+  steps:
+    - log_stop_failure:
+        call: log_best_effort
+        args:
+          data: $${error}
+    - retry:
+        return: true
+
+log_best_effort:
+  params: [data]
+  steps:
+    - write_log:
+        try:
+          call: sys.log
+          args:
+            data: $${data}
+            severity: "ERROR"
+            timeout: 5
+        except:
+          as: logging_error
+          steps:
+            - ignore_logging_failure:
+                return: false
+    - log_written:
+        return: true

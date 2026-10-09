@@ -75,6 +75,7 @@ resource "google_workflows_workflow" "performance_schedule" {
   depends_on = [
     google_project_service.services,
     google_project_iam_member.performance_scheduler,
+    google_project_iam_member.performance_scheduler_logging,
   ]
 
   name                = "foigoi-performance-october-2026"
@@ -88,6 +89,12 @@ resource "google_workflows_workflow" "performance_schedule" {
     zone          = var.zone
     instance_name = "foigoi-api"
   })
+}
+
+resource "google_project_iam_member" "performance_scheduler_logging" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.performance_scheduler.email}"
 }
 
 resource "google_project_iam_member" "logging" {
